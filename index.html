@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<!--This is an early draft of the map for the final project, submitted during module 07-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!--This started with the tempate from module 6 and then modified-->
+  <title>One Mapper</title>
+
+  <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/cerulean/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-C++cugH8+Uf86JbNOnQoBweHHAe/wVKN/mb0lTybu/NZ9sEYbd+BbbYtNpWYAsNP" crossorigin="anonymous">
+  <!--Loading in the fonts that I want to use-->
+  <link href="https://fonts.googleapis.com/css?family=Oswald:400" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Overpass:400" rel="stylesheet">
+  <link href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" rel="stylesheet" />
+  <style>
+    #map {
+      width: 100%;
+      height: 40vh;
+    }
+
+    #about {
+      max-height: 80vh;
+      overflow-y: scroll;
+    }
+
+    /*Setting some additional CSS rules*/
+    .h1 {
+      font-family: 'Oswald';
+      font-weight: 400;
+    }
+
+    .list {
+      font-family: 'Oswald';
+      font-weight: 400;
+      font-size: x-large;
+    }
+
+    .descriptivetext {
+      font-family: 'Overpass';
+      font-weight: 400;
+      color: black
+    }
+
+    .links {
+      color: blue
+    }
+
+    /*Throughout the document, I'm annotating with some references for code*/
+    /*https://www.w3schools.com/css/css3_buttons.asp*/
+    .button1 {
+      background-color: #4CAF50;
+      /* Green */
+      border: none;
+      color: white;
+      width: 180px;
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+    }
+
+    .button2 {
+      background-color: #2b8cbe;
+      border: none;
+      color: white;
+      width: 180px;
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+    }
+
+    /* Small devices (landscape phones, 576px and up) */
+    @media (min-width: 576px) {}
+
+    /* Medium devices (tablets, 768px and up) */
+    @media (min-width: 768px) {
+      #map {
+        height: 60vh;
+      }
+    }
+
+    /* Large devices (desktops, 992px and up) */
+    @media (min-width: 992px) {
+
+      #map {
+        height: 80vh;
+      }
+    }
+
+    /* Extra large devices (large desktops, 1200px and up) */
+    @media (min-width: 1200px) {}
+  </style>
+  <script src="http://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.1.0/papaparse.min.js"></script>
+  <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.3.1/leaflet-omnivore.min.js'></script>
+  <script src='https://unpkg.com/simple-statistics@7.1.0/dist/simple-statistics.min.js'></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous">
+    </script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
+    </script>
+  <script src="https://d3js.org/d3.v5.js"></script>
+  <script src="https://unpkg.com/topojson@3"></script>
+
+</head>
+
+<body>
+
+  <div class="container-fluid">
+    <header class="row py-3 bg-dark text-white">
+      <div class="col mx-2">
+        <h1 class="h1">One Mapper</h1>
+      </div>
+    </header>
+
+    <section class="row bg-secondary">
+      <div class="col-12 col-md-7 col-lg-8 px-0">
+        <div id="map" class="bg-light position-relative"></div>
+      </div>
+
+      <aside id="about" class="col-12 col-md-5 col-lg-4 text-dark py-2">
+        <section>
+          <h2 class="h2 text-dark">Single Variable Mapping And Analysis</h2>
+          <p class="descriptivetext">This map allows you to add in points by clicking on the map or by uploading data.
+            Add a value for each
+            point and this map will provide an analysis and table you can download for later use.</p>
+          <!--The tutorial link can go to a pdf or a GitHub page? Maybe GitHubt page that includes an online or pdf option for descriptions-->
+          <p class="descriptivetext">Check out <a href="#" class="links">this tutorial</a> for an example.</p>
+
+          <h5 class="descriptivetext">Where do you want to map?</h5>
+          <p class="descriptivetext">Zoom using the dropdown or using the map navigation</p>
+          <!--Idea here would be for a button to activate the popup window rather than having the popup appear right away, it could be more difficult for users to navigate if the popup keeps appearing first-->
+          <!--This is the dropdown to select which continent is of interest-->
+          <div class="form-group mr-3 mt-3" id="dropdown-ui">
+            <select class="form-control bg-primary text-white">
+              <option value="Global" selected>Global</option>
+              <option value="Africa">Africa</option>
+              <option value="Europe">Europe</option>
+              <option value="North America">North America</option>
+              <option value="South America">South America</option>
+              <option value="Asia">Asia</option>
+              <option value="Australia">Australia</option>
+              <option value="Antarctica">Antarctica</option>
+            </select>
+          </div>
+          <h5 class="descriptivetext">Please enter a short title for your map</h5>
+          <form action="" class="descriptivetext">
+            <label for="fname">Short title/description:</label>
+            <input type="text" id="fname" name="fname"><br><br>
+            <!--<input type="submit" value="Submit">-->
+            <!--At some point, the text the user enters for the short title/description would then be pulled into the "Print It" part of the map-->
+          </form>
+          <h5 class="descriptivetext">Which variable are you mapping?</h5>
+          <form action="" class="descriptivetext">
+            <label for="fname">Variable name:</label>
+            <input type="text" id="fname" name="fname"><br><br>
+            <!--<input type="submit" value="Submit">-->
+            <!--At some point, the text the user enters for the short title/description would then be pulled into the "Print It" part of the map-->
+          </form>
+          <h5 class="descriptivetext">Existing dataset? Upload using the link</h5>
+          <i>Your csv should have three columns: Lat, Lon, and Value. Download a <a href="">template</a>.</i>
+          <p><input type="file" id="fileUpload" /></p>
+          <!--https://www.w3schools.com/tags/tag_input.asp-->
+          <br>
+          <h5 class="descriptivetext">Creating data? Click the map to begin!</h5>
+
+          <p class="descriptivetext">
+            <!--https://www.d3-graph-gallery.com/graph/interactivity_button.html-->
+            <!--https://www.w3schools.com/jsref/event_onclick.asp-->
+            <!--The actual button interactivity is below in the script portion of the document-->
+            <button type="button" class="button1" input type="file" name="usrname" id="uploaddata">Upload Data</button>
+            <input id='fileid' type='file' hidden />
+            <button type="button" class="button1" id="addpoints">Add Points</button>
+          </p>
+          <p>
+            <button type="button" class="button2" id="mapit">Map It!</button>
+            <button type="button" class="button2" id="printit">Print It!</button>
+          </p>
+          <br><br>
+          <h5 class="descriptivetext">Other Mapping Resources</h5>
+          <!--Including additional links and suggestions. One Mapper doesn't do everything, in fact, it does one task and many people may be interested in other tasks. Those are best accomplished with other mapping resources-->
+          <ul>
+            <li>The framework for this page was inspired by <a href="http://geojson.io/" target="new">geojson.io</a>
+            </li>
+            <li>Interested in more advanced mapping?</li>
+            <ol><a href="http://geodacenter.github.io/index.html" target="new">GeoDa</a></ol>
+            <ol><a href="https://qgis.org/en/site/QGIS" target="new">QGIS</a></ol>
+            <ol><a href="https://desktop.arcgis.com/en/arcmap/" target="new">ESRI ArcGIS</a></ol>
+            <ol><a href="https://cengel.github.io/rspatial/" target="new">Spatial analysis in R</a>
+              <ol>(many resources, here's one example)</ol>
+            </ol>
+          </ul>
+          <!--Put the footer within the right side pane-->
+          <!--Shifted down the section and aside tags to move this within the right side pane-->
+          <footer class="row bg-dark text-white py-3">
+            <div class="col m-2">
+              <ul class="list" style="list-style-type:none;">
+                <!--https://www.w3schools.com/html/tryit.asp?filename=tryhtml_lists_unordered_none-->
+                <li>John F Obrycki, New Maps Plus</li>
+                <li><a href="#">GitHub</a> | <a href="#">LinkedIn</a></li>
+              </ul>
+            </div>
+          </footer>
+  </div> <!-- end .container-fluid -->
+
+  </section>
+  </aside>
+  </section>
+
+  <script>
+    //////////////////////////////SET THE BASEMAPS
+    // Setting the global options for the map
+
+    var options = {
+      center: [0, 0],
+      zoom: 2,
+      minZoom: 2,
+      maxZoom: 18,
+      zoomControl: true
+    }
+
+    // This approach is based on the https://leafletjs.com/examples/layers-control/
+    // There may be other options that condense this code
+    // The var names can be tricky to keep separate and to keep thinking of unique terms
+
+    // This sets the links to the three basemaps
+    var SatelliteImagery = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+    var OpenTopoMap = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
+    var OpenStreetBase = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    // More options available here
+    // http://leaflet-extras.github.io/leaflet-providers/preview/index.html
+
+    // Get basemap attributes from Leaflet Providers for the specific map used
+    var basemap_attributes = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
+    var OpenTopo_attributes = 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)';
+    var OpenStreet_attributes = '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>';
+
+    //Now let's set the tileLayers
+    //Why is zoomOffset = -1 necesary to keep the map centered at the [0,0] point? If I remove zoomOffset, then the map shifts to the north
+    var SatBase = L.tileLayer(SatelliteImagery, { id: 'satellite', tileSize: 512, zoomOffset: -1, attribution: basemap_attributes });
+    var TopoBase = L.tileLayer(OpenTopoMap, { id: 'topo', tileSize: 512, zoomOffset: -1, attribution: OpenTopo_attributes });
+    var StreetBase = L.tileLayer(OpenStreetBase, { id: 'OSM', tileSize: 512, zoomOffset: -1, attribution: OpenStreet_attributes });
+    // requests some map tiles
+
+    //Create the map with the options from above
+    //Set the Satellite to be the default layer
+    var map = L.map('map', options, {
+      layers: [SatBase]
+    });
+
+    //Create an object with the three baselayers
+    var baseLayers = {
+      "Satellite": SatBase,
+      "Streets": StreetBase,
+      "Topo": TopoBase
+    };
+
+    //Get the Satellite basemap loaded first
+    var tiles = SatBase.addTo(map);
+
+    //Then add the other layers in the control and keep the control visible (don't collapse)
+    L.control.layers(baseLayers, null, { collapsed: false }).addTo(map);
+    //////////////////////////////END OF SET THE BASEMAPS
+
+
+
+    ///////////////////////////////////////////////SETTING EVENT HANDLERS
+    //this is great! thanks so much!!!
+    document.querySelector('#fileUpload').addEventListener('change', event => {
+      handleUpload(event)
+    })
+
+    function handleUpload(event) {
+      var reader = new FileReader();
+      reader.onload = onReaderLoad;
+      reader.readAsText(event.target.files[0]);
+    }
+    ///////////////////////////////////////////////END OF SETTING EVENT HANDLERS
+
+
+
+    //////////////////////////////ZOOMING AROUND THE MAP
+    //One idea to find the geographic centers of each continent was this wiki page
+    //https://en.wikipedia.org/wiki/Geographical_centre
+    //The lat lon mentioned in the zoomAreas const are just from clicking on the map itself
+    const zoomAreas = {
+      "Global": [0, 0],
+      "Africa": [5.4026, 21.7548],
+      "Europe": [52.4856, 29.8129],
+      "North America": [42.5433, -98.1069],
+      "South America": [-17.2498, -59.9709],
+      "Asia": [44.3322, 91.6642],
+      "Australia": [-25.5977, 134.1274],
+      "Antarctica": [-85.2539, -2.167]
+    }
+    //When the global option is selected, zoom at 2, but for all others, zoom into the map a little
+    var zoom1 = 3.5;
+    var zoom2 = 2;
+
+    //trying to set the zoom depending on global (zoom out) versus any continent, then zoom in more
+    $('#dropdown-ui select').change(function () {
+      if (this.value == "Global") {
+        map.setView(zoomAreas[this.value], zoom2)
+      } else {
+        //map.panTo(zoomAreas[this.value],zoom)
+        map.setView(zoomAreas[this.value], zoom1)
+      }
+    });
+    //////////////////////////////END OF ZOOMING AROUND THE MAP
+
+
+
+
+    //////////////////////////////BUTTON FUNCTIONALITY: UPLOAD DATA
+    //Step one, load the data in and convert to a json
+    // Use HTML5 FileReader API
+
+    function onReaderLoad(event) {
+      console.log(event.target.result);
+      //var obj = JSON.parse(event.target.result);
+      const obj = Papa.parse(event.target.result,
+        { header: true }
+      );
+      //call several console.log to see what's happening
+      console.log(obj);
+      console.log(obj.data[1])
+
+      addingToMap(obj)        //call the addingToMap function and pass the obj to this function
+      calculatingStatistics(obj) //call the calculatingStatistics function and pass the obj to this function
+    } //this is the end of the onreader load function
+    //end of step one
+
+    //step two, the addingToMap function, this plots the points that were created in the onReaderLoad function
+    function addingToMap(obj, AllValuesTest) {
+
+      //Early efforts here for combining the separate Lat and Long columns in the csv
+      //Reading in as a csv and not a json could be leadingto these challenges?
+      //console.log(obj.data[1]["Lat"], obj.data[1]["Lon"])
+      //console.log("[", obj.data[1]["Lat"], ",", obj.data[1]["Lon"], "]")
+      //console.log(obj.data.length)
+      //but now I need to create a function to convert all to lat lon
+      //  for (var i = 0; i < obj.data.length; i++) {
+      //console.log(
+      //L.latLng(obj.data[i]["Lat"], obj.data[i]["Lon"])
+      //)
+      //}
+
+      //This console log shows I can access the obj.data directly and send to a L.latLng command
+      console.log(L.latLng(obj.data[2].Lat, obj.data[2].Lon))
+
+      var Coords = []
+      for (var i = 0; i < obj.data.length; i++) {
+        Coords.push(
+          L.latLng(obj.data[i]["Lat"], obj.data[i]["Lon"])
+        )
+      }
+      console.log(Coords)  //this creates a full object 8 long
+
+      // Key question: Maybe I can merge the Coords information back into each piece of the obj.data?
+      // but trying this below really slowed down the map, so much that I thought the page froze
+
+      // for (var i=0; i< obj.data.length; i++)
+      // {
+      // obj.data.push(Coords[i])
+      // }
+      // console.log(obj.data)
+      //     for (var i = 0; i < Coords.length; i++) { 
+      //   var marker = L.marker(Coords[i]).addTo(map)
+      //}
+
+      //////////////////////////////////////////Option for merging these together
+      // https://stackoverflow.com/questions/36602160/how-to-push-object-to-array-from-for-loop-properly-in-javascript
+      var arr = [];
+      obj2 = {};
+      var fruits = ['banana', 'apple', 'mango'];
+      var label = 'Fruits';
+
+      for (var i = 0; i < fruits.length; i++) {
+        var obj2 = {}; // <---- Move declaration inside loop
+
+        obj2['data'] = fruits[i];
+        obj2['label'] = label;
+        arr.push(obj2);
+        console.log(obj2)
+      }
+      /////////////////////////////////////////////End of option for merging these together
+
+      //Creating the popup
+      for (var i = 0; i < obj.data.length; i++) {
+
+        var popup = `<p><b>Value</b>:${obj.data[i].Value}<br>
+                    <b>Latitude</b>: ${obj.data[i]["Lat"]}<br>
+                    <b>Longitude</b>: ${obj.data[i]["Lon"]}</p>`
+
+        //this keeps the lat and lon in the name when I pull in the values
+        const DataPoints = L.circleMarker(L.latLng(obj.data[i]["Lat"], obj.data[i]["Lon"]),
+          {
+            //can write a color function to change the values
+            //something is not writing correctly, but the function is not throwing an error
+            color: '#fa9fb5',
+            fillColor: colorTest(obj.data.Value),
+            fillOpacity: 0.7,
+            opacity: 1
+          }
+        )
+          .addTo(map)
+          .bindPopup(popup)
+        //map.fitBounds(DataPoints.getBounds()); Could this be used to set the zoom?
+
+        //should i write in the legend here?
+      } //end of the for loop
+
+      //but how to push this back to the other object?
+      console.log(Object.assign(obj, Coords));
+      //that does merge them, but not within each row, I want to merge the [i] rows together
+
+    }  // end of step two, end of addingToMap function
+    ////////////////////////////////////////////////////////////////////////////////////
+
+
+    //////////////////////////////END OF BUTTON FUNCTIONALITY: UPLOAD DATA
+
+
+
+    ///////////////////////////////START OF TESTING OUT POPUP OPTIONS
+
+    //on mouse click, be able to edit the map in a different way
+    //what if the functionality only works when the Add Points button is clicked?
+
+    //https://leafletjs.com/examples/quick-start/
+    //Let's create a popup
+    document.getElementById("addpoints").onclick = function () { onMapClick(e) };
+
+    var popup = L.popup();
+
+    //Here's a function that would pull up an information panel when the map is clicked
+    //A user could then enter data, though right now it's a static popup
+    //Some type of event handler, maybe a .onclick function?
+    //Some kind of event handler that checks if another button is selected, and then has the pop up appear
+    //See the variable e is not a variable?
+    function onMapClick(e) {
+      popup
+        .setLatLng(e.latlng)
+        .setContent(
+          "Location:" + e.latlng.toString() + `<br>` +
+          `<form action="">
+            <label for="fname">Value:</label>
+            <input type="text" id="fname" name="fname"><br><br>
+            <input type="submit" value="Save">
+            <input type="submit" value="Delete">
+          </form>`
+        )
+        .openOn(map);
+      map.on('click', onMapClick);
+    }
+
+    //////////////////////////////END OF TESTING OUT POPUP OPTIONS
+
+
+
+
+
+
+    //////////////////////////////BUTTON FUNCTIONALITY: MAPIT
+    //testing out some button functionality
+    //https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_onclick_dom
+    //https://stackoverflow.com/questions/18388288/how-do-you-add-marker-to-map-using-leaflet-map-onclick-function-event-handl
+    //The actual map it function will involve running a calculation and displaying some kind of interpolated map with the additional points colored by quartile
+    //Right now the Map It button is just to see if I can get a button to work
+    document.getElementById("mapit").onclick = function () { myFunction() };
+
+    function myFunction() {
+      var marker = new L.marker([0, 0]).addTo(map);
+      marker.bindPopup("The button works! You just made this point on the map!").openPopup();
+    }
+    //////////////////////////////END OF BUTTON FUNCTIONALITY: MAPIT
+
+
+
+
+    ///////////////////////////////BUTTON FUNCTIONALITY: PRINT IT
+    //https://www.codementor.io/@amehjoseph/convert-html-css-content-to-a-sleek-multiple-page-pdf-file-using-jspdf-javascript-library-eyyz74hci
+
+
+    ////////////////////////////////END OF BUTTON FUNCTIONALITY: PRINT IT
+
+
+
+
+    //////////////////////////////////TESTING OUT STATISTICS CALCULATIONS
+    //Early stages 
+
+    const AllValues = []
+    const AllValuesTest = []
+    function calculatingStatistics(obj) {
+      console.log(obj.data)
+      console.log(Number(obj.data[1].Value) + Number(obj.data[2].Value))
+
+      for (var i = 0; i < obj.data.length; i++) {
+        AllValues.push(
+          Number(obj.data[i].Value)
+        )
+      }
+
+      //Testing out coding options with statistics, breaks, etc
+      console.log(AllValues)
+      console.log(Math.max(...AllValues))
+
+      var breaks = chroma.limits(AllValues, 'q', 3);
+      console.log(breaks)
+      console.log(AllValues[2] < breaks[1])
+      console.log(AllValues < 15)
+
+      for (var i = 0; i < AllValues.length; i++) {
+        console.log(AllValues[i] < 15)
+      }
+
+      for (var i = 0; i < AllValues.length; i++) {
+        AllValuesTest.push(AllValues[i] < 10)
+      }
+      console.log(AllValuesTest)
+
+    } //end of calculatingStatistics
+
+
+    //possible new function, colorTest to create the colors for the plotted points
+    //this colorTest function could then be called back in the addingToMap function to update the colors of the points
+    function colorTest(AllValuesTest) {
+      if (AllValuesTest == "TRUE") {
+        fillColor: '#fa9fb5'
+      } else {
+        //map.panTo(zoomAreas[this.value],zoom)
+        fillColor: "black"
+      }
+      console.log(colorTest)
+
+    }
+
+
+   //////////////////////////////////END OF TESTING OUT STATISTICS CALCULATIONS
+
+  </script>
+</body>
+
+</html>

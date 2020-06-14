@@ -1,6 +1,6 @@
 # one-mapper
 
-Welcome to One Mapper. You can upload a csv file or create your own point data by clicking on the map. If you have a value associated with those points, you can visualize the value data into four groups.
+Welcome to One Mapper. This is the companion page to the <a href="https://jfobrycki.github.io/one-mapper/" target="_blank">web version</a>. You can upload a csv file or create your own point data by clicking on the map. If you have a value associated with those points, you can visualize the value data into four groups.
 
 ## Table of Contents
 
@@ -60,7 +60,7 @@ This edited dataset is available <a href="data/BGS_As">here</a>.
 
 To test out these datasets:
 
-1. Go to <a href="#" target="_blank">One Mapper</a>
+1. Go to <a href="https://jfobrycki.github.io/one-mapper/" target="_blank">One Mapper</a>
 2. Scroll down the page until you see this:
 
 ![](images/UploadExample.jpeg)

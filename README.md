@@ -13,12 +13,12 @@ Welcome to One Mapper. This is the companion page to the <a href="https://jfobry
 
 ### Why should I use One Mapper?
 
-Does your data that looks like this?
+Does your data that looks like this?<br><br>
 ![](images/ExampleCSV.jpeg)
 
 <br><br>
 
-And you want to create this?
+And you want to create this?<br><br>
 ![](images/ExampleMap.jpeg)
 
 Dataset used in this example from <a href="https://www.naturalearthdata.com/downloads/110m-cultural-vectors/" target="_blank">Natural Earth Data</a>, specifically <a href=" https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/110m/cultural/ne_110m_populated_places_simple.zip" target="_blank">Populated Places, Download simple (less columns)</a> (39.45 KB) version 4.1.0.

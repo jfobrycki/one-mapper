@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="en">
-<!--This is an early draft of the map for the final project, submitted during module 07-->
 
 <head>
   <meta charset="utf-8">
@@ -15,6 +14,7 @@
   <link href="https://fonts.googleapis.com/css?family=Oswald:400" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Overpass:400" rel="stylesheet">
   <link href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" rel="stylesheet" />
+
   <style>
     #map {
       width: 100%;
@@ -51,7 +51,7 @@
     /*Throughout the document, I'm annotating with some references for code*/
     /*https://www.w3schools.com/css/css3_buttons.asp*/
     .button1 {
-      background-color: #4CAF50;
+      background-color: lightgray;
       /* Green */
       border: none;
       color: white;
@@ -75,6 +75,40 @@
       font-size: 16px;
     }
 
+    .button3 {
+      background-color: #1c9099;
+      border: none;
+      color: white;
+      width: 110px;
+      padding: 10px 10px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+    }
+
+    .legend {
+      line-height: 18px;
+      color: #000000;
+      background-color: white;
+      font-size: 20px;
+      width: 150px;
+      height: 200px;
+    }
+
+    .legend i {
+      width: 150px;
+      height: 25px;
+      float: left;
+      margin-right: 4px;
+      margin-bottom: 4px;
+      opacity: 0.7;
+    }
+
+    #popup {
+      display: none
+    }
+
     /* Small devices (landscape phones, 576px and up) */
     @media (min-width: 576px) {}
 
@@ -96,6 +130,8 @@
     /* Extra large devices (large desktops, 1200px and up) */
     @media (min-width: 1200px) {}
   </style>
+
+  <!--Loading in leaflet, jquery, and others-->
   <script src="http://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.1.0/papaparse.min.js"></script>
@@ -110,15 +146,21 @@
     </script>
   <script src="https://d3js.org/d3.v5.js"></script>
   <script src="https://unpkg.com/topojson@3"></script>
+  <script>L_PREFER_CANVAS = true</script>
+  <script src='https://unpkg.com/leaflet-image@latest/leaflet-image.js'></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.2.61/jspdf.debug.js"></script>
+
 
 </head>
 
 <body>
 
+  <!--Setting the text on the right side of the page-->
   <div class="container-fluid">
     <header class="row py-3 bg-dark text-white">
       <div class="col mx-2">
-        <h1 class="h1">One Mapper</h1>
+        <h1 class="h1"><span class='MyMapName'>One Mapper v0.1</span></h1>
+        <h4 class="h5"><span class='OneMapperVersion'></span></h5>
       </div>
     </header>
 
@@ -129,15 +171,16 @@
 
       <aside id="about" class="col-12 col-md-5 col-lg-4 text-dark py-2">
         <section>
-          <h2 class="h2 text-dark">Single Variable Mapping And Analysis</h2>
-          <p class="descriptivetext">This map allows you to add in points by clicking on the map or by uploading data.
-            Add a value for each
-            point and this map will provide an analysis and table you can download for later use.</p>
+          <h2 class="h2 text-dark">Single Variable Mapping</h2>
+          <p class="descriptivetext">Visualize data by location and split into four value ranges by uploading data or clicking on the map
+            (<a href="#" class="links">Tutorial</a>). If you need to clear the map, click this button.</p>
           <!--The tutorial link can go to a pdf or a GitHub page? Maybe GitHubt page that includes an online or pdf option for descriptions-->
-          <p class="descriptivetext">Check out <a href="#" class="links">this tutorial</a> for an example.</p>
-
+          <!--https://stackoverflow.com/questions/29884654/button-that-refreshes-the-page-on-click-->
+          <button type="button" class="button3" id="reload" onclick="window.location.href=window.location.href">Clear Map!</button>
+          <br><br>
           <h5 class="descriptivetext">Where do you want to map?</h5>
-          <p class="descriptivetext">Zoom using the dropdown or using the map navigation</p>
+          <p class="descriptivetext">Navigate with the dropdown or by clicking/zooming. On data upload, map will
+            automatically zoom to your points.</p>
           <!--Idea here would be for a button to activate the popup window rather than having the popup appear right away, it could be more difficult for users to navigate if the popup keeps appearing first-->
           <!--This is the dropdown to select which continent is of interest-->
           <div class="form-group mr-3 mt-3" id="dropdown-ui">
@@ -152,53 +195,68 @@
               <option value="Antarctica">Antarctica</option>
             </select>
           </div>
-          <h5 class="descriptivetext">Please enter a short title for your map</h5>
+          <!-- <h5 class="descriptivetext">Please enter a short title for your map</h5> -->
+          <br>
+          <h5 class="descriptivetext">What do you want to map?</h5>
           <form action="" class="descriptivetext">
             <label for="fname">Short title/description:</label>
-            <input type="text" id="fname" name="fname"><br><br>
+            <input type="text" id="tname" name="tname" value="My New Map!"><br>
             <!--<input type="submit" value="Submit">-->
             <!--At some point, the text the user enters for the short title/description would then be pulled into the "Print It" part of the map-->
           </form>
-          <h5 class="descriptivetext">Which variable are you mapping?</h5>
+          <!--<h5 class="descriptivetext">Which variable are you mapping?</h5>-->
           <form action="" class="descriptivetext">
             <label for="fname">Variable name:</label>
-            <input type="text" id="fname" name="fname"><br><br>
+            <input type="text" id="vname" name="vname" value="Name"><br><br>
             <!--<input type="submit" value="Submit">-->
             <!--At some point, the text the user enters for the short title/description would then be pulled into the "Print It" part of the map-->
           </form>
-          <h5 class="descriptivetext">Existing dataset? Upload using the link</h5>
+          <h5 class="descriptivetext"><b>Existing dataset?</b> Upload using the link</h5>
           <i>Your csv should have three columns: Lat, Lon, and Value. Download a <a href="">template</a>.</i>
           <p><input type="file" id="fileUpload" /></p>
           <!--https://www.w3schools.com/tags/tag_input.asp-->
-          <br>
-          <h5 class="descriptivetext">Creating data? Click the map to begin!</h5>
-
+          <h5 class="descriptivetext">After loading in <span class='TotalVar'></span> points, now visualize by quartile!
+          </h5>
+          <button type="button" class="button2" id="mapit">Map Values!</button>
+          <br><br><br>
+          <h5 class="descriptivetext"><b>Creating data?</b> Click the button below and then generate a map!</h5>
           <p class="descriptivetext">
             <!--https://www.d3-graph-gallery.com/graph/interactivity_button.html-->
             <!--https://www.w3schools.com/jsref/event_onclick.asp-->
             <!--The actual button interactivity is below in the script portion of the document-->
-            <button type="button" class="button1" input type="file" name="usrname" id="uploaddata">Upload Data</button>
-            <input id='fileid' type='file' hidden />
             <button type="button" class="button1" id="addpoints">Add Points</button>
+
+            <!-- ---- -->
+          <div id='popup' class="p-2">
+            <span></span>
+            <label for="fname">Value:</label>
+            <input type="text" id="fname" name="fname">
+            <button id='save'>Save</button>
+            <button id='del'>Delete</button>
+          </div>
+          <!-- ---- -->
           </p>
+          <h5 class="descriptivetext">After creating <span class='TotalAdd'></span> points, now visualize by quartile!
+          </h5>
           <p>
-            <button type="button" class="button2" id="mapit">Map It!</button>
-            <button type="button" class="button2" id="printit">Print It!</button>
+            <button type="button" class="button2" id="genmap">Generate Map!</button>
           </p>
-          <br><br>
+          <hr>
           <h5 class="descriptivetext">Other Mapping Resources</h5>
           <!--Including additional links and suggestions. One Mapper doesn't do everything, in fact, it does one task and many people may be interested in other tasks. Those are best accomplished with other mapping resources-->
           <ul>
-            <li>The framework for this page was inspired by <a href="http://geojson.io/" target="new">geojson.io</a>
+            <li>The framework for this page was inspired by <a href="http://geojson.io/" target="_blank">geojson.io</a>
             </li>
+            <li>Map documentation is provided on the <a href="" target="_blank">GitHub page</a></li>
             <li>Interested in more advanced mapping?</li>
-            <ol><a href="http://geodacenter.github.io/index.html" target="new">GeoDa</a></ol>
-            <ol><a href="https://qgis.org/en/site/QGIS" target="new">QGIS</a></ol>
-            <ol><a href="https://desktop.arcgis.com/en/arcmap/" target="new">ESRI ArcGIS</a></ol>
-            <ol><a href="https://cengel.github.io/rspatial/" target="new">Spatial analysis in R</a>
-              <ol>(many resources, here's one example)</ol>
+            <ol><a href="http://geodacenter.github.io/index.html" target="_blank">GeoDa</a></ol>
+            <ol><a href="https://qgis.org/en/site/QGIS" target="_blank">QGIS</a></ol>
+            <ol><a href="https://desktop.arcgis.com/en/arcmap/" target="_blank">ESRI ArcGIS</a></ol>
+            <ol><a href="https://cengel.github.io/rspatial/" target="_blank">Spatial analysis in R</a>
+              <ol>(many R options, here's one example)</ol>
             </ol>
           </ul>
+
           <!--Put the footer within the right side pane-->
           <!--Shifted down the section and aside tags to move this within the right side pane-->
           <footer class="row bg-dark text-white py-3">
@@ -206,7 +264,7 @@
               <ul class="list" style="list-style-type:none;">
                 <!--https://www.w3schools.com/html/tryit.asp?filename=tryhtml_lists_unordered_none-->
                 <li>John F Obrycki, New Maps Plus</li>
-                <li><a href="#">GitHub</a> | <a href="#">LinkedIn</a></li>
+                <li>GitHub <a href="https://jfobrycki.github.io/" target="_blank">Project Page</a> and all <a href="https://github.com/jfobrycki" target="_blank">repositories</a> and  | <a href="https://www.linkedin.com/in/john-f-obrycki-1a3b032b">LinkedIn</a></li>
               </ul>
             </div>
           </footer>
@@ -225,6 +283,7 @@
       zoom: 2,
       minZoom: 2,
       maxZoom: 18,
+      zoomSnap: 0.25,
       zoomControl: true
     }
 
@@ -273,24 +332,8 @@
 
 
 
-    ///////////////////////////////////////////////SETTING EVENT HANDLERS
-    //this is great! thanks so much!!!
-    document.querySelector('#fileUpload').addEventListener('change', event => {
-      handleUpload(event)
-    })
-
-    function handleUpload(event) {
-      var reader = new FileReader();
-      reader.onload = onReaderLoad;
-      reader.readAsText(event.target.files[0]);
-    }
-    ///////////////////////////////////////////////END OF SETTING EVENT HANDLERS
-
-
 
     //////////////////////////////ZOOMING AROUND THE MAP
-    //One idea to find the geographic centers of each continent was this wiki page
-    //https://en.wikipedia.org/wiki/Geographical_centre
     //The lat lon mentioned in the zoomAreas const are just from clicking on the map itself
     const zoomAreas = {
       "Global": [0, 0],
@@ -315,238 +358,722 @@
         map.setView(zoomAreas[this.value], zoom1)
       }
     });
-    //////////////////////////////END OF ZOOMING AROUND THE MAP
+    ////////////////////////////////END OF ZOOMING AROUND THE MAP
 
 
 
 
-    //////////////////////////////BUTTON FUNCTIONALITY: UPLOAD DATA
-    //Step one, load the data in and convert to a json
-    // Use HTML5 FileReader API
+    ///////////////////////////////////////////////SETTING EVENT HANDLERS
+    //Boyd suggested this file upload approach
+    document.querySelector('#fileUpload').addEventListener('change', event => {
+      handleUpload(event)
+    })
+    ///////////////////////////////////////////////END OF SETTING EVENT HANDLERS
 
-    function onReaderLoad(event) {
-      console.log(event.target.result);
-      //var obj = JSON.parse(event.target.result);
-      const obj = Papa.parse(event.target.result,
-        { header: true }
-      );
-      //call several console.log to see what's happening
-      console.log(obj);
-      console.log(obj.data[1])
 
-      addingToMap(obj)        //call the addingToMap function and pass the obj to this function
-      calculatingStatistics(obj) //call the calculatingStatistics function and pass the obj to this function
-    } //this is the end of the onreader load function
-    //end of step one
+    /////////////////////////////////////////////////////////////////////////
+    ////////////////CODE FOR UPLOADING DATA AND VISUALIZING ON MAP////////////
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
 
-    //step two, the addingToMap function, this plots the points that were created in the onReaderLoad function
-    function addingToMap(obj, AllValuesTest) {
 
-      //Early efforts here for combining the separate Lat and Long columns in the csv
-      //Reading in as a csv and not a json could be leadingto these challenges?
-      //console.log(obj.data[1]["Lat"], obj.data[1]["Lon"])
-      //console.log("[", obj.data[1]["Lat"], ",", obj.data[1]["Lon"], "]")
-      //console.log(obj.data.length)
-      //but now I need to create a function to convert all to lat lon
-      //  for (var i = 0; i < obj.data.length; i++) {
-      //console.log(
-      //L.latLng(obj.data[i]["Lat"], obj.data[i]["Lon"])
-      //)
-      //}
+    ////////////////////////////////////////////LOAD IN THE DATA
+    function handleUpload(event) {
+      const file = document.querySelector('#fileUpload').files[0];
+      Papa.parse(file, {
+        complete: function (results) {
+          console.log(results.data);
+          // Thanks for all your help Boyd!!!!
 
-      //This console log shows I can access the obj.data directly and send to a L.latLng command
-      console.log(L.latLng(obj.data[2].Lat, obj.data[2].Lon))
+          //create the geojsonFeature placeholder
+          var geojsonFeature = []
 
-      var Coords = []
-      for (var i = 0; i < obj.data.length; i++) {
-        Coords.push(
-          L.latLng(obj.data[i]["Lat"], obj.data[i]["Lon"])
-        )
-      }
-      console.log(Coords)  //this creates a full object 8 long
+          //create the loop, note that var starts with 1 because the first row is the names Lat, Lon, Value
+          for (var i = 1; i < results.data.length; i++) {
 
-      // Key question: Maybe I can merge the Coords information back into each piece of the obj.data?
-      // but trying this below really slowed down the map, so much that I thought the page froze
+            //push the results of the loop to geojsonFeature
+            geojsonFeature.push(
 
-      // for (var i=0; i< obj.data.length; i++)
-      // {
-      // obj.data.push(Coords[i])
-      // }
-      // console.log(obj.data)
-      //     for (var i = 0; i < Coords.length; i++) { 
-      //   var marker = L.marker(Coords[i]).addTo(map)
-      //}
+              //this is the structure of an geojson
+              //for example, https://leafletjs.com/examples/geojson/
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Point",
+                  //first we collect the latitude, then the longitude, these are items 0 and 1 
+                  //structure of the coordinates is x , y or longitude, latitude
+                  "coordinates": [results.data[i][1], results.data[i][0]]
+                },
+                "properties": {
+                  //item 2 in the same row is the value, what we want to plot
+                  "value": [results.data[i][2]]
+                }
+              } //this is the end of the geojsonFeature
+            ) //this is the end of the push command
+          } //end of the for loop
 
-      //////////////////////////////////////////Option for merging these together
-      // https://stackoverflow.com/questions/36602160/how-to-push-object-to-array-from-for-loop-properly-in-javascript
-      var arr = [];
-      obj2 = {};
-      var fruits = ['banana', 'apple', 'mango'];
-      var label = 'Fruits';
+          //Get the number of items in the geojsonFeature and update right panel
+          $(".TotalVar").html((geojsonFeature.length).toLocaleString());
 
-      for (var i = 0; i < fruits.length; i++) {
-        var obj2 = {}; // <---- Move declaration inside loop
+          //pass the new geojsonFeature to the updateMap function
+          updateMap(geojsonFeature)
 
-        obj2['data'] = fruits[i];
-        obj2['label'] = label;
-        arr.push(obj2);
-        console.log(obj2)
-      }
-      /////////////////////////////////////////////End of option for merging these together
+        } //end of complete function(results)
+      });
 
-      //Creating the popup
-      for (var i = 0; i < obj.data.length; i++) {
+      // var reader = new FileReader();
+      // reader.onload = onReaderLoad();
+      // reader.readAsText(event.target.files[0]);
 
-        var popup = `<p><b>Value</b>:${obj.data[i].Value}<br>
-                    <b>Latitude</b>: ${obj.data[i]["Lat"]}<br>
-                    <b>Longitude</b>: ${obj.data[i]["Lon"]}</p>`
+    } //this is the end of the handleUpload function
+    ///////////////////////////////////////////////END OF LOAD IN THE DATA
 
-        //this keeps the lat and lon in the name when I pull in the values
-        const DataPoints = L.circleMarker(L.latLng(obj.data[i]["Lat"], obj.data[i]["Lon"]),
-          {
-            //can write a color function to change the values
-            //something is not writing correctly, but the function is not throwing an error
-            color: '#fa9fb5',
-            fillColor: colorTest(obj.data.Value),
-            fillOpacity: 0.7,
-            opacity: 1
-          }
-        )
-          .addTo(map)
-          .bindPopup(popup)
-        //map.fitBounds(DataPoints.getBounds()); Could this be used to set the zoom?
 
-        //should i write in the legend here?
+
+
+    ////////////////////////////////////////////////PUT THE VALUES ON THE MAP
+
+    //and pull in this function
+    function updateMap(geojsonFeature) {
+      //check that it's routing correctly
+      console.log(geojsonFeature)
+      console.log(geojsonFeature[1].properties.value[0])
+      var mapops = {
+        "opacity": 1,
+        "weight": 1,
+        "radius": 5,
+        "fillOpacity": 0.6,
+        "color": 'black',
+        "fillColor": 'black'
+      };
+
+
+      for (var i = 0; i < geojsonFeature.length; i++) {
+        var popup = `<b>Value:</b> ${geojsonFeature[i].properties.value[0]}</h3>`
+        //console.log(popup)
+
       } //end of the for loop
 
-      //but how to push this back to the other object?
-      console.log(Object.assign(obj, Coords));
-      //that does merge them, but not within each row, I want to merge the [i] rows together
+      const NewMapData = L.geoJSON(geojsonFeature, {
+        // style counties with initial default path options
+        onEachFeature: function (feature, layer) {
+          layer.bindPopup(`<b>Value:</b> ${feature.properties.value}</h3>`)
+        },
+        pointToLayer: function (feature, latlng) {
+          return L.circleMarker(latlng, mapops)
+        },
+      }).addTo(map)
 
-    }  // end of step two, end of addingToMap function
-    ////////////////////////////////////////////////////////////////////////////////////
+      //get the boundaries
+      map.fitBounds(NewMapData.getBounds());
+
+      // adjust zoom level of map
+      map.setZoom(map.getZoom() - .4);
+
+      //pass to updateLegend function
+      updateLegend(NewMapData)
+
+    } //end of updateMap
+
+    ////////////////////////////////////////////////END OF PUT THE VALUES ON THE MAP
 
 
-    //////////////////////////////END OF BUTTON FUNCTIONALITY: UPLOAD DATA
+
+    //////////////////////////////BUTTON FUNCTIONALITY: MAPIT - with uploaded data
+    //testing out some button functionality
+    //https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_onclick_dom
+    //https://stackoverflow.com/questions/18388288/how-do-you-add-marker-to-map-using-leaflet-map-onclick-function-event-handl
+    //may be a jquery .one() approach for having a function work just once
+
+    function updateLegend(NewMapData) {
+      document.getElementById("mapit").addEventListener("click", function () {
+        console.log(NewMapData);
+        var totalvalues = console.log(Object.keys(NewMapData).length + 1);
+        getClassBreaks(NewMapData)
+
+        function getClassBreaks(NewMapData) {
+          // 				// create empty Array for storing values
+          const alldata = [];
+          // 				// loop through all the counties
+          NewMapData.eachLayer(function (layer) {
+            let values = Number(layer.feature.properties.value);
+            alldata.push(values); // push the normalized value for each layer into the Array
+          });
+          // 				// determine similar clusters
+          const clusters = ss.ckmeans(alldata, 4);
+          //const clusters = ss.equalIntervalBreaks(alldata, 4);
+          console.log(clusters)
+          // 				// create an array of the lowest value within each cluster
+          const breaks = clusters.map(function (cluster) {
+            return [cluster[0], cluster.pop()];
+          });
+          // 				//return array of arrays, e.g., [[0.24,0.25], [0.26, 0.37], etc]
+          return breaks;
+        } //this is the end of the getClassBreaks function
+
+        function getColor2(d, breaks) {
+          // 				// function accepts a single normalized data attribute value
+          // 				// and uses a series of conditional statements to determine which
+          // 				// which color value to return to return to the function caller
+          // 				// we defined breaks as a const, so it is a standard reference that can't be changed
+
+          if (d <= breaks[0][1]) {
+            return '#fef0d9';
+          } else if (d <= breaks[1][1]) {
+            return '#fdcc8a';
+          } else if (d <= breaks[2][1]) {
+            return '#fc8d59';
+          } else if (d <= breaks[3][1]) {
+            return '#d7301f'
+          }
+        } //this is the end of the getColor function
+
+        const breaks = getClassBreaks(NewMapData);
+
+        NewMapData.eachLayer(function (layer) {
+          // console.log(breaks)
+          console.log(layer.feature.properties.value[0]);
+          layer.setStyle({
+            fillColor: getColor2(layer.feature.properties.value[0], breaks),
+            fillOpacity: 1
+            // fillColor: getColor2(breaks)
+          })
+        });
+        $(".MyMapName").html(document.getElementById("tname").value);
+        $(".OneMapperVersion").html("Made with OneMapper v0.1");
+        //zoom out slightly to make space for the legend
+        map.setZoom(map.getZoom() - .55);
+
+        // Setting up the legend
+
+
+        var legend = L.control({ position: 'bottomleft' });
+
+        legend.onAdd = function (map) {
+          var div = L.DomUtil.create('div', 'info legend'),
+            grades = [0, 25, 50, 75, 100],
+            labels = [];
+
+          div.innerHTML += `<b>Legend</b><br><br>`
+          console.log(document.getElementById("vname").value)
+          div.innerHTML += document.getElementById("vname").value
+          div.innerHTML += `<br><br>`
+          // loop through the Array of classification break values
+          for (let i = 0; i <= breaks.length - 1; i++) {
+            let color = getColor2(breaks[i][0], breaks);
+            console.log(color)
+            div.innerHTML += (
+              `<i span style="background:${color}"></span>
+              <label>${(breaks[i][0]).toLocaleString()} &mdash;
+              ${(breaks[i][1]).toLocaleString()}</label>`);
+          }
+          return div;
+
+        }; //closes the legend.onAdd function
+        //https://www.geeksforgeeks.org/how-to-get-the-value-of-text-input-field-using-javascript/
+
+        legend.addTo(map); //add the legend to the map
+        AddPointButton(NewMapData)
+        //Here I will add code to show the title to the map
+
+      }) //closes the button portion
+    } //end of updateLegend function
+
+
+    // function AddPointButton(NewMapData){
+    toggle = false;
+    document.getElementById("addpoints").addEventListener("click", function () {
+      toggle = !toggle;
+      this.style.backgroundColor = toggle ? "#4CAF50" : "lightgray";
+      console.log(this.style.backgroundColor);
+      console.log(this.style.backgroundColor == 'lightgray');
+      console.log(this.style.backgroundColor == "rgb(76, 175, 80)")
+      // var buttoncolor = document.getElementById("addpoints");
+      //  var curColor = window.getComputedStyle(buttoncolor,null).color;
+      //  console.log(curColor);
+      // if (curColor =! "lightgray") {
+      if (this.style.backgroundColor == "rgb(76, 175, 80)") {
+        onMapClick(); // pass data to update
+        // the line below displays the popup on the right panel of the page
+        //   document.querySelector('#popup').style.display = 'inherit'
+
+      } else {
+        document.querySelector('#popup').style.display = 'none'
+        doubleClickZoom();
+        //window.stop(onMapClick);
+
+      }
+
+    }); //end of the addEventListener
+    // }
+    //})
+    //////////////////////////////END OF BUTTON FUNCTIONALITY: MAPIT
+
+
+    /////////////////////////////////////////////////////////////////////////
+    ////////////////END OF CODE FOR UPLOADING DATA AND VISUALIZING ON MAP/////
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
 
 
 
-    ///////////////////////////////START OF TESTING OUT POPUP OPTIONS
+    /////////////////////////////////////////////////////////////////////////
+    //////CODE FOR USER CLICKING ON MAP, CREATING POINTS, AND VISUALIZING/////
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
 
-    //on mouse click, be able to edit the map in a different way
-    //what if the functionality only works when the Add Points button is clicked?
+
+    ///////////////////////////////ADD POINTS FUNCTIONALITY////////////////
+
+    //part one: click the add points button to activate a function
+    //part two: now that the function is activated, when the user clicks on the map, the popup with lat lon and value appears
+    //user has the option to save or delete this new point
+    //part three: if user clicks save, then the point is pushed to an array
+    //part four: if user clicks delete, then the point is removed from the array
+    //part five: if a person clicks a following button, map it, then the quartiles are calculated and the map reloads
+    //summary: the add points button acts as a gatekeeper for all of this subsequent functionality
 
     //https://leafletjs.com/examples/quick-start/
     //Let's create a popup
-    document.getElementById("addpoints").onclick = function () { onMapClick(e) };
 
-    var popup = L.popup();
+    //https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/color
+    //https://stackoverflow.com/questions/45259626/switch-background-color-of-a-div-between-2-colors-on-alternate-clicks
+    //https://stackoverflow.com/questions/33447118/javascript-if-else-style-changing
+
+
+    //https://leafletjs.com/reference-1.6.0.html
 
     //Here's a function that would pull up an information panel when the map is clicked
     //A user could then enter data, though right now it's a static popup
     //Some type of event handler, maybe a .onclick function?
     //Some kind of event handler that checks if another button is selected, and then has the pop up appear
-    //See the variable e is not a variable?
-    function onMapClick(e) {
-      popup
-        .setLatLng(e.latlng)
-        .setContent(
-          "Location:" + e.latlng.toString() + `<br>` +
-          `<form action="">
-            <label for="fname">Value:</label>
-            <input type="text" id="fname" name="fname"><br><br>
-            <input type="submit" value="Save">
-            <input type="submit" value="Delete">
-          </form>`
-        )
-        .openOn(map);
-      map.on('click', onMapClick);
-    }
 
-    //////////////////////////////END OF TESTING OUT POPUP OPTIONS
+    // const NewMapData = L.geoJSON(geojsonFeature, {
+    //     // style counties with initial default path options
+    //     onEachFeature: function (feature, layer) {
+    //       layer.bindPopup(`<b>Value:</b> ${feature.properties.value}</h3>`)
+    //     },
+    //     pointToLayer: function (feature, latlng) {
+    //       return L.circleMarker(latlng, mapops)
+    //     },
+    //   }).addTo(map)
 
 
+    function onMapClick() {
+
+      //.button1 {background-color: #4CAF50};, try the button color, change the button color to provide some context that now mapping can occur, not just zooming on the map
+
+      //Creating a location where all the newly created points on map click can be stored
+      EnteredData = []
+      //Now creating the popup, if I've also created a popup in the previous section when data are uploaded, maybe I should modify to refer to popup2 rather than both places calling popup
+      function createPopup2(e) {
+
+       
+//         EnteredData.push = [ {
+//       "type": "Feature",
+//              "geometry": {
+//               "type": "Point",
+//               //first we collect the latitude, then the longitude, these are items 0 and 1 
+//                "coordinates": [e.latlng.lng, e.latlng.lat]
+//              },
+//              "properties": {
+//         //       //item 2 in the same row is the value, what we want to plot
+//               "value": 0
+//              }
+//       }
+// ]
+
+        // Add marker to map at click location; add popup window
+        //https://stackoverflow.com/questions/18388288/how-do-you-add-marker-to-map-using-leaflet-map-onclick-function-event-handl
+        const infowindow = L.popup(e);
+
+        EnteredData.push(L.circleMarker
+          (e.latlng, {
+            "opacity": 1,
+            "weight": 2,
+            "fillOpacity": 0.6,
+            "color": 'green',
+            "fillColor": 'green',
+          } //close newMarker
+
+          ).bindPopup(infowindow)
+          .addTo(map)); //add the marker to the map
+
+        //The console log for the EnteredData shows the array increasing
+        console.log(EnteredData)
+
+        //Show the total number of points added in the right panel to the user
+        $(".TotalAdd").html((EnteredData.length).toLocaleString());
+
+        //In the const save line, it looks to be calling for a popup and save id, like with the other buttons
+        //So I added id=popup and id=save to the form text
+      //  const save = document.querySelector('#popup2 #save')
+        //I keep getting an error in the console, TypeError: save is null
+      //  save.addEventListener('click', function () {
+      //  const value = document.querySelector('#popup2 #fname').value
+       // data = []
+       // data.addData(
+          //    {
+          //      "type": "Feature",
+          //      "geometry": {
+          //      "type": "Point",
+          //        "coordinates": [e.latlng.lng, e.latlng.lat]
+          //      },
+          //      "properties": {
+          //        "value": value
+          //      }
+          //    }
+          //  ) //end of data.addData
+
+        infowindow
+          .setLatLng(e.latlng)
+          .setContent(
+            //  //Now the single quote below this line
+            `
+    Location: ${e.latlng.toString()}<br>
+      <form action="" id="popup2">
+      <label for="fname">Value: </label>
+      <input type="text" id="fname" name="fname"><br><br>
+     <input type="submit" value="Save" id="save" name="save">
+     <input type="submit" value="Delete" id="del">
+      </form>
+`
+            //Note the single quote above this line
+          )
+//console.log(data)
+
+     //    }) //end of save.addEventListener('click', function () 
+
+        // //Now create the option for deleting the point
+        // const del = document.querySelector('#popup #del')
+        // del.addEventListener('click', function () {
+        //   map.removeLayer(newMarker)
+        // }) //end of del.addEventListener('click', function () {
+
+      } //end of create popup, function createPopup(e) {
+
+      //Now show the popup when the map is clicked
+      map.on('click', createPopup2);
+
+      //Creates the option for the generate map
+      //  const genmap = document.querySelector('#genmap')
+
+      //  genmap.addEventListener('click', function () {
+      //    console.log(data)
+      // draw new map and legend
+      //     generateMap(data)
+      //   })
+
+    } //end of the onMapClick function
+
+
+    //Here is the original merge attempt from Boyd's code
+    // function onMapClick() {
+    //   //.button1 {background-color: #4CAF50};, try the button color, change the button color to provide some context that now mapping can occur, not just zooming on the map
+
+    //   //Creating a location where all the newly created points on map click can be stored
+    //   EnteredData = []
+
+    //   //Now creating the popup, if I've also created a popup in the previous section when data are uploaded, maybe I should modify to refer to popup2 rather than both places calling popup
+    //   function createPopup2(e) {
+    //     // Add marker to map at click location; add popup window
+    //     //https://stackoverflow.com/questions/18388288/how-do-you-add-marker-to-map-using-leaflet-map-onclick-function-event-handl
+    //     var newMarker = EnteredData.push(new L.circleMarker(e.latlng, {
+    //         "opacity": 1,
+    //         "weight": 2,
+    //         "fillOpacity": 0.6,
+    //         "color": 'green',
+    //         "fillColor": 'green'
+    //     } //close newMarker
+    //     ).addTo(map)); //add the marker to the map
+
+    //     //The console log for the NewMarker shows the number of points added
+    //     console.log(newMarker)
+    //     //The console log for the EnteredData shows the array increasing
+    //     console.log(EnteredData)
+    //     //Show the total number of points added in the right panel to the user
+    //     $(".TotalAdd").html((EnteredData.length).toLocaleString());
+
+    //     //In the const save line, it looks to be calling for a popup and save id, like with the other buttons
+    //     //So I added id=popup and id=save to the form text
+    //     const save = document.querySelector('#popup2 #save')
+    //     //I keep getting an error in the console, TypeError: save is null
+    //     save.addEventListener('click', function () {
+    //       const value = document.querySelector('#popup2 #fname').value
+    //       data.addData(
+    //         {
+    //           "type": "Feature",
+    //           "geometry": {
+    //             "type": "Point",
+    //             "coordinates": [e.latlng.lng, e.latlng.lat]
+    //           },
+    //           "properties": {
+    //             "value": value
+    //           }
+    //         }
+    //       ) //end of data.addData
+
+    //       //now we are creating the popup
+    //       const popup2 = L.popup(e)
+    //         .setLatLng(e.latlng)
+    //         .setContent(
+    //      //Now the single quote below this line
+    //       `
+    //         <form action="" id="popup2">
+    //           Location: ${e.latlng.toString()}<br>
+    //           <label for="fname">Value: ${value}</label>
+    //           <input type="text" id="fname" name="fname"><br><br>
+    //           <input type="submit" value="Save" id="save" name="save">
+    //           <input type="submit" value="Delete" id="del">
+    //         </form>
+    //       `
+    //       //Note the single quote above this line
+    //         )
+    //         .openOn(map);
+    //       //console.log(data)
+
+    //     }) //end of save.addEventListener('click', function () 
+
+    //     //Now create the option for deleting the point
+    //     const del = document.querySelector('#popup2 #del')
+    //     del.addEventListener('click', function () {
+    //       map.removeLayer(newMarker)
+    //     }) //end of del.addEventListener('click', function () {
+
+    //   } //end of create popup, function createPopup2(e) {
+
+    //   //Now show the popup when the map is clicked
+    //   map.on('click', createPopup2);
+
+    //   //Creates the option for the generate map
+    //   const genmap = document.querySelector('#genmap')
+
+    //   genmap.addEventListener('click', function () {
+    //     console.log(data)
+    //     // draw new map and legend
+    //   })
+
+    // } //end of the onMapClick function
 
 
 
 
-    //////////////////////////////BUTTON FUNCTIONALITY: MAPIT
-    //testing out some button functionality
-    //https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_onclick_dom
-    //https://stackoverflow.com/questions/18388288/how-do-you-add-marker-to-map-using-leaflet-map-onclick-function-event-handl
-    //The actual map it function will involve running a calculation and displaying some kind of interpolated map with the additional points colored by quartile
-    //Right now the Map It button is just to see if I can get a button to work
-    document.getElementById("mapit").onclick = function () { myFunction() };
-
-    function myFunction() {
-      var marker = new L.marker([0, 0]).addTo(map);
-      marker.bindPopup("The button works! You just made this point on the map!").openPopup();
-    }
-    //////////////////////////////END OF BUTTON FUNCTIONALITY: MAPIT
 
 
+    //     var popup = L.popup();
+
+    // //Here's a function that would pull up an information panel when the map is clicked
+    // //A user could then enter data, though right now it's a static popup
+    // //Some type of event handler, maybe a .onclick function?
+
+    // function onMapClick(e) {
+    //   popup
+    //     .setLatLng(e.latlng)
+    //     .setContent(
+    //       "Location:" + e.latlng.toString() + `<br>` +
+    //       `<form action="">
+    //         <label for="fname">Value:</label>
+    //         <input type="text" id="fname" name="fname"><br><br>
+    //         <input type="submit" value="Save">
+    //         <input type="submit" value="Delete">
+    //       </form>`
+    //     )
+    //     .openOn(map);
+    // }
+
+    // map.on('click', onMapClick);
 
 
-    ///////////////////////////////BUTTON FUNCTIONALITY: PRINT IT
+
+
+
+
+
+
+
+    //////////////////////////////END OF ADD POINTS FUNCTIONALITY
+
+    //////////////////////////////NOW VISUALIZE THE USER ENTERED DATA
+    ///This code will be similar to the code from the upload data options, but will use the EnteredData instead of NewMapData
+
+    function generateMap(EnteredData) {
+      document.getElementById("genmap").addEventListener("click", function () {
+        console.log(EnteredData);
+        var totalvalues = console.log(Object.keys(EnteredData).length + 1);
+        getClassBreaks(EnteredData)
+
+        function getClassBreaks(EnteredData) {
+          // 				// create empty Array for storing values
+          const alldata = [];
+          // 				// loop through all the counties
+          EnteredData.eachLayer(function (layer) {
+            let values = layer.feature.properties.value;
+            alldata.push(values); // push the normalized value for each layer into the Array
+          });
+          // 				// determine similar clusters
+          const clusters = ss.ckmeans(alldata, 4);
+          console.log(clusters)
+          // 				// create an array of the lowest value within each cluster
+          const breaks = clusters.map(function (cluster) {
+            return [cluster[0], cluster.pop()];
+          });
+          // 				//return array of arrays, e.g., [[0.24,0.25], [0.26, 0.37], etc]
+          return breaks;
+        } //this is the end of the getClassBreaks function
+
+        function getColor2(d, breaks) {
+          // 				// function accepts a single normalized data attribute value
+          // 				// and uses a series of conditional statements to determine which
+          // 				// which color value to return to return to the function caller
+          // 				// we defined breaks as a const, so it is a standard reference that can't be changed
+
+          if (d <= breaks[0][1]) {
+            return '#fef0d9';
+          } else if (d <= breaks[1][1]) {
+            return '#fdcc8a';
+          } else if (d <= breaks[2][1]) {
+            return '#fc8d59';
+          } else if (d <= breaks[3][1]) {
+            return '#d7301f'
+          }
+        } //this is the end of the getColor function
+
+        const breaks = getClassBreaks(EnteredData);
+
+        EnteredData.eachLayer(function (layer) {
+          // console.log(breaks)
+          console.log(layer.feature.properties.value[0]);
+          layer.setStyle({
+            fillColor: getColor2(layer.feature.properties.value[0], breaks),
+            fillOpacity: 1
+            // fillColor: getColor2(breaks)
+          })
+        });
+
+        //zoom out slightly to make space for the legend
+        map.setZoom(map.getZoom() - .8);
+
+        // Setting up the legend
+        var legend = L.control({ position: 'bottomleft' });
+
+        legend.onAdd = function (map) {
+          var div = L.DomUtil.create('div', 'info legend'),
+            grades = [0, 25, 50, 75, 100],
+            labels = [];
+
+          div.innerHTML += `<span class='TotalVar'></span>` + `<b>Look! A legend!</b><span class='TotalVar'></span><br><br>`
+          div.innerHTML += `There are how many items plotted?`
+          //  for (var i = 0; i < grades.length; i++) {
+          //  div.innerHTML +=
+          //      '<i style="background:' + getColorANC(grades[i] + 1) + '"></i> ' +
+          //      grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '%');
+          // } //this closes the for
+          return div;
+
+          //          for (let i = 0; i <= breaks.length - 1; i++) {
+          //					let color = getColor2(breaks[i][0], breaks);
+          //					legend.append(
+          //						`<span style="background:${color}"></span>
+          //					<label>${(breaks[i][0] * 100).toLocaleString()} &mdash;
+          //					${(breaks[i][1] * 100).toLocaleString()}%</label>`);
+          //				}
+
+        }; //closes the legend.onAdd function
+
+
+        legend.addTo(map); //add the legend to the map
+
+      }) //closes the button portion
+    } //end of updateLegend function
+
+    //////////////////////////////END OF BUTTON FUNCTIONALITY: MAPIT - USER INPUT
+
+
+/////////////////////////////////////////////////////////////////////////
+//END OF CODE FOR USER CLICKING ON MAP, CREATING POINTS, AND VISUALIZING//
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+    //////////////////////////////TEST CODE FOR GETTING PDF OF THE MAP
+
+    // https://gis.stackexchange.com/questions/238414/adding-a-new-and-removing-an-old-marker-every-time-the-user-click-on-the-map
     //https://www.codementor.io/@amehjoseph/convert-html-css-content-to-a-sleek-multiple-page-pdf-file-using-jspdf-javascript-library-eyyz74hci
 
+    //This code is from the following page
+    //https://gist.github.com/ka7eh/88761650efd3425080035e8535230d15
+  //  document.getElementById("printit").onclick = downloadMap;
 
-    ////////////////////////////////END OF BUTTON FUNCTIONALITY: PRINT IT
+    //   function downloadMap(err, canvas) {
+    //     var imgData = canvas.toDataURL("image/svg+xml", 1.0);
+    //     var dimensions = map.getSize();
 
+    //     var pdf = new jsPDF('l', 'pt', 'letter');
+    //     pdf.addImage(imgData, 'PNG', 10, 10, dimensions.x * 0.5, dimensions.y * 0.5);
 
+    //     cover.className = '';
 
+    //     pdf.save("download.pdf");
+    //    };
 
-    //////////////////////////////////TESTING OUT STATISTICS CALCULATIONS
-    //Early stages 
+    //https://github.com/mapbox/leaflet-image
+  //  function downloadMap() {
 
-    const AllValues = []
-    const AllValuesTest = []
-    function calculatingStatistics(obj) {
-      console.log(obj.data)
-      console.log(Number(obj.data[1].Value) + Number(obj.data[2].Value))
+ //     leafletImage(map, function (err, canvas) {
+        // now you have canvas
+        // example thing to do with that canvas:
+   //     var img = document.createElement('img');
+  //      var dimensions = map.getSize();
+   //     img.width = dimensions.x;
+   //     img.height = dimensions.y;
+   //     img.src = canvas.toDataURL();
+        // document.getElementById('images').innerHTML = '';
+        // document.getElementById('images').appendChild(img);
+  //    });
+  //  }
 
-      for (var i = 0; i < obj.data.length; i++) {
-        AllValues.push(
-          Number(obj.data[i].Value)
-        )
-      }
-
-      //Testing out coding options with statistics, breaks, etc
-      console.log(AllValues)
-      console.log(Math.max(...AllValues))
-
-      var breaks = chroma.limits(AllValues, 'q', 3);
-      console.log(breaks)
-      console.log(AllValues[2] < breaks[1])
-      console.log(AllValues < 15)
-
-      for (var i = 0; i < AllValues.length; i++) {
-        console.log(AllValues[i] < 15)
-      }
-
-      for (var i = 0; i < AllValues.length; i++) {
-        AllValuesTest.push(AllValues[i] < 10)
-      }
-      console.log(AllValuesTest)
-
-    } //end of calculatingStatistics
+    //////////////////////////////TEST CODE FOR GETTING PDF OF THE MAP
 
 
-    //possible new function, colorTest to create the colors for the plotted points
-    //this colorTest function could then be called back in the addingToMap function to update the colors of the points
-    function colorTest(AllValuesTest) {
-      if (AllValuesTest == "TRUE") {
-        fillColor: '#fa9fb5'
-      } else {
-        //map.panTo(zoomAreas[this.value],zoom)
-        fillColor: "black"
-      }
-      console.log(colorTest)
+    ////////////////////////////////////////////MOUSEOVER EVENTS TO ADD IN
+//    function mouseEvents(geojsonFeature) {
+ //     console.log(geojsonFeature[1].properties.value[0])
+ //     for (var i = 0; i < geojsonFeature.length; i++) {
 
-    }
+//        geojsonFeature.on("mouseover", function (e) {
+//          this.openPopup(); //can put the popup here
+//          this.setStyle(
+//            {
+//              color: 'red',
+//            }
+///          )
+ //       });
 
 
-   //////////////////////////////////END OF TESTING OUT STATISTICS CALCULATIONS
+  //      geojsonFeature.on("mouseout", function (e) {
+  //        this.closePopup(); //can put the popup here
+  //        this.setStyle(
+  ///          {
+  //            color: 'black',
+  //          }
+  ////        )
+  //      });
+  //    } //end of the for loop
+  //    bindPopup(popup); //myFunction(ValueLayer)
+  //  }
+////////////////////////////////////////////END OF MOUSEOVER EVENTS TO ADD IN
+
+ ///https://eloquentjavascript.net/15_event.html
 
   </script>
 </body>

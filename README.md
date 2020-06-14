@@ -6,9 +6,9 @@ Welcome to One Mapper. This is the companion page to the <a href="https://jfobry
 
 [Why should I use One Mapper?](#Why-should-I-use-One-Mapper?)<br>
 [Tutorial and example files](#Tutorial-and-example-files)<br>
-[Making One Mapper](#making)<br>
-[Data security](#data-security)<br>
-[Other resources](#other-resources)<br>
+[Making One Mapper](#Making-One-Mapper)<br>
+[Data security](#Data-security)<br>
+[Other resources](#Other-resources)<br>
 
 
 ### Why should I use One Mapper?

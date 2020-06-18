@@ -545,6 +545,17 @@
           for (let i = 0; i <= breaks.length - 1; i++) {
             let color = getColor2(breaks[i][0], breaks);
             console.log(color)
+
+            // For large numbers, test for how large you want and convert to exponential notation
+            // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential
+
+            function expo(x, f) {
+              return Number.parseFloat(x).toExponential(f);
+            }
+
+            console.log(expo(123456, 2));
+            // expected output: "1.23e+5"
+
             div.innerHTML += (
               `<span style="background:${color}">
               <label>${(breaks[i][0]).toLocaleString()} &mdash;

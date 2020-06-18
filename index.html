@@ -87,21 +87,25 @@
       font-size: 14px;
     }
 
-    .legend {
+    #legend {
       line-height: 18px;
       color: #000000;
       background-color: white;
       font-size: 20px;
-      width: 150px;
-      height: 200px;
+      /* width: 150px; */
+      /* height: 200px; */
+      padding: 10px;
+      display: none;
     }
 
-    .legend i {
-      width: 150px;
+    #legend span {
+      /* width: 150px; */
       height: 25px;
       float: left;
-      margin-right: 4px;
-      margin-bottom: 4px;
+      /* margin-right: 4px; */
+      /* margin-bottom: 4px; */
+      margin: 4px;
+      padding: 4px;
       opacity: 0.7;
     }
 
@@ -273,6 +277,9 @@
   </section>
   </aside>
   </section>
+
+  <!-- legend is outside of container-fluid and will be dynamically added to map -->
+  <div class="bg-white py-2 px-3 ml-3 mt-3" id="legend"></div>
 
   <script>
     //////////////////////////////SET THE BASEMAPS
@@ -486,6 +493,19 @@
     //https://stackoverflow.com/questions/18388288/how-do-you-add-marker-to-map-using-leaflet-map-onclick-function-event-handl
     //may be a jquery .one() approach for having a function work just once
 
+    function addLegend() {
+      var legend = L.control({ position: 'bottomleft' });
+
+      legend.onAdd = function (map) {
+        var div = L.DomUtil.get('legend')
+        return div
+      }
+
+      legend.addTo(map); //add the legend to the map
+    }
+
+    addLegend()
+
     function updateLegend(NewMapData) {
       document.getElementById("mapit").addEventListener("click", function () {
         console.log(NewMapData);
@@ -509,19 +529,15 @@
         //zoom out slightly to make space for the legend
         map.setZoom(map.getZoom() - .55);
 
-        
-
         // Setting up the legend
 
-
-        var legend = L.control({ position: 'bottomleft' });
-
-        legend.onAdd = function (map) {
-          var div = L.DomUtil.create('div', 'info legend'),
             grades = [0, 25, 50, 75, 100],
             labels = [];
 
-          div.innerHTML += `<b>Legend</b><br><br>`
+          const div = document.querySelector('#legend')
+          div.style.display = 'block'
+
+          div.innerHTML = `<b>Legend</b><br><br>`
           console.log(document.getElementById("vname").value)
           div.innerHTML += document.getElementById("vname").value
           div.innerHTML += `<br><br>`
@@ -530,13 +546,12 @@
             let color = getColor2(breaks[i][0], breaks);
             console.log(color)
             div.innerHTML += (
-              `<i span style="background:${color}"></span>
+              `<span style="background:${color}">
               <label>${(breaks[i][0]).toLocaleString()} &mdash;
-              ${(breaks[i][1]).toLocaleString()}</label>`);
+              ${(breaks[i][1]).toLocaleString()}</label></span><br>`);
           }
-          return div;
 
-        }; //closes the legend.onAdd function
+        //closes the legend.onAdd function
         //https://www.geeksforgeeks.org/how-to-get-the-value-of-text-input-field-using-javascript/
 
         legend.addTo(map); //add the legend to the map

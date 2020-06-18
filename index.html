@@ -492,43 +492,6 @@
         var totalvalues = console.log(Object.keys(NewMapData).length + 1);
         getClassBreaks(NewMapData)
 
-        function getClassBreaks(NewMapData) {
-          // 				// create empty Array for storing values
-          const alldata = [];
-          // 				// loop through all the counties
-          NewMapData.eachLayer(function (layer) {
-            let values = Number(layer.feature.properties.value);
-            alldata.push(values); // push the normalized value for each layer into the Array
-          });
-          // 				// determine similar clusters
-          const clusters = ss.ckmeans(alldata, 4);
-          //const clusters = ss.equalIntervalBreaks(alldata, 4);
-          console.log(clusters)
-          // 				// create an array of the lowest value within each cluster
-          const breaks = clusters.map(function (cluster) {
-            return [cluster[0], cluster.pop()];
-          });
-          // 				//return array of arrays, e.g., [[0.24,0.25], [0.26, 0.37], etc]
-          return breaks;
-        } //this is the end of the getClassBreaks function
-
-        function getColor2(d, breaks) {
-          // 				// function accepts a single normalized data attribute value
-          // 				// and uses a series of conditional statements to determine which
-          // 				// which color value to return to return to the function caller
-          // 				// we defined breaks as a const, so it is a standard reference that can't be changed
-
-          if (d <= breaks[0][1]) {
-            return '#fef0d9';
-          } else if (d <= breaks[1][1]) {
-            return '#fdcc8a';
-          } else if (d <= breaks[2][1]) {
-            return '#fc8d59';
-          } else if (d <= breaks[3][1]) {
-            return '#d7301f'
-          }
-        } //this is the end of the getColor function
-
         const breaks = getClassBreaks(NewMapData);
 
         NewMapData.eachLayer(function (layer) {
@@ -540,10 +503,13 @@
             // fillColor: getColor2(breaks)
           })
         });
+
         $(".MyMapName").html(document.getElementById("tname").value);
         $(".OneMapperVersion").html("Made with OneMapper v0.1");
         //zoom out slightly to make space for the legend
         map.setZoom(map.getZoom() - .55);
+
+        
 
         // Setting up the legend
 
@@ -605,7 +571,56 @@
 
       }
 
-    }); //end of the addEventListener
+    }); 
+
+
+    function getClassBreaks(NewMapData) {
+          // 				// create empty Array for storing values
+          const alldata = [];
+          // 				// loop through all the counties
+          NewMapData.eachLayer(function (layer) {
+            let values = Number(layer.feature.properties.value);
+            alldata.push(values); // push the normalized value for each layer into the Array
+          });
+          // 				// determine similar clusters
+          const clusters = ss.ckmeans(alldata, 4);
+          //const clusters = ss.equalIntervalBreaks(alldata, 4);
+          console.log(clusters)
+          // 				// create an array of the lowest value within each cluster
+          const breaks = clusters.map(function (cluster) {
+            return [cluster[0], cluster.pop()];
+          });
+          // 				//return array of arrays, e.g., [[0.24,0.25], [0.26, 0.37], etc]
+          return breaks;
+        } //this is the end of the getClassBreaks function
+
+        function getColor2(d, breaks) {
+          // 				// function accepts a single normalized data attribute value
+          // 				// and uses a series of conditional statements to determine which
+          // 				// which color value to return to return to the function caller
+          // 				// we defined breaks as a const, so it is a standard reference that can't be changed
+
+          if (d <= breaks[0][1]) {
+            return '#fef0d9';
+          } else if (d <= breaks[1][1]) {
+            return '#fdcc8a';
+          } else if (d <= breaks[2][1]) {
+            return '#fc8d59';
+          } else if (d <= breaks[3][1]) {
+            return '#d7301f'
+          }
+        } //this is the end of the getColor function
+
+      
+        
+        
+        
+
+    
+
+
+
+
     // }
     //})
     //////////////////////////////END OF BUTTON FUNCTIONALITY: MAPIT

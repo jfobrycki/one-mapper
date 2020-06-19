@@ -87,21 +87,25 @@
       font-size: 14px;
     }
 
-    .legend {
+    #legend {
       line-height: 18px;
       color: #000000;
       background-color: white;
       font-size: 20px;
-      width: 150px;
-      height: 200px;
+      /* width: 150px; */
+      /* height: 200px; */
+      padding: 10px;
+      display: none;
     }
 
-    .legend i {
-      width: 150px;
+    #legend span {
+      /* width: 150px; */
       height: 25px;
       float: left;
-      margin-right: 4px;
-      margin-bottom: 4px;
+      /* margin-right: 4px; */
+      /* margin-bottom: 4px; */
+      margin: 4px;
+      padding: 4px;
       opacity: 0.7;
     }
 
@@ -273,6 +277,9 @@
   </section>
   </aside>
   </section>
+
+  <!-- legend is outside of container-fluid and will be dynamically added to map -->
+  <div class="bg-white py-2 px-3 ml-3 mt-3" id="legend"></div>
 
   <script>
     //////////////////////////////SET THE BASEMAPS
@@ -486,13 +493,113 @@
     //https://stackoverflow.com/questions/18388288/how-do-you-add-marker-to-map-using-leaflet-map-onclick-function-event-handl
     //may be a jquery .one() approach for having a function work just once
 
+    function addLegend() {
+      var legend = L.control({ position: 'bottomleft' });
+
+      legend.onAdd = function (map) {
+        var div = L.DomUtil.get('legend')
+        return div
+      }
+
+      legend.addTo(map); //add the legend to the map
+    }
+
+    addLegend()
+
     function updateLegend(NewMapData) {
       document.getElementById("mapit").addEventListener("click", function () {
         console.log(NewMapData);
         var totalvalues = console.log(Object.keys(NewMapData).length + 1);
         getClassBreaks(NewMapData)
 
-        function getClassBreaks(NewMapData) {
+        const breaks = getClassBreaks(NewMapData);
+
+        NewMapData.eachLayer(function (layer) {
+          // console.log(breaks)
+          console.log(layer.feature.properties.value[0]);
+          layer.setStyle({
+            fillColor: getColor2(layer.feature.properties.value[0], breaks),
+            fillOpacity: 1
+            // fillColor: getColor2(breaks)
+          })
+        });
+
+        $(".MyMapName").html(document.getElementById("tname").value);
+        $(".OneMapperVersion").html("Made with OneMapper v0.1");
+        //zoom out slightly to make space for the legend
+        map.setZoom(map.getZoom() - .55);
+
+        // Setting up the legend
+
+            grades = [0, 25, 50, 75, 100],
+            labels = [];
+
+          const div = document.querySelector('#legend')
+          div.style.display = 'block'
+
+          div.innerHTML = `<b>Legend</b><br><br>`
+          console.log(document.getElementById("vname").value)
+          div.innerHTML += document.getElementById("vname").value
+          div.innerHTML += `<br><br>`
+          // loop through the Array of classification break values
+          for (let i = 0; i <= breaks.length - 1; i++) {
+            let color = getColor2(breaks[i][0], breaks);
+            console.log(color)
+
+            // For large numbers, test for how large you want and convert to exponential notation
+            // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential
+
+            function expo(x, f) {
+              return Number.parseFloat(x).toExponential(f);
+            }
+
+            console.log(expo(123456, 2));
+            // expected output: "1.23e+5"
+
+            div.innerHTML += (
+              `<span style="background:${color}">
+              <label>${(breaks[i][0]).toLocaleString()} &mdash;
+              ${(breaks[i][1]).toLocaleString()}</label></span><br>`);
+          }
+
+        //closes the legend.onAdd function
+        //https://www.geeksforgeeks.org/how-to-get-the-value-of-text-input-field-using-javascript/
+
+        // AddPointButton(NewMapData)
+        //Here I will add code to show the title to the map
+
+      }) //closes the button portion
+    } //end of updateLegend function
+
+
+    // function AddPointButton(NewMapData){
+    toggle = false;
+    document.getElementById("addpoints").addEventListener("click", function () {
+      toggle = !toggle;
+      this.style.backgroundColor = toggle ? "#4CAF50" : "lightgray";
+      console.log(this.style.backgroundColor);
+      console.log(this.style.backgroundColor == 'lightgray');
+      console.log(this.style.backgroundColor == "rgb(76, 175, 80)")
+      // var buttoncolor = document.getElementById("addpoints");
+      //  var curColor = window.getComputedStyle(buttoncolor,null).color;
+      //  console.log(curColor);
+      // if (curColor =! "lightgray") {
+      if (this.style.backgroundColor == "rgb(76, 175, 80)") {
+        onMapClick(); // pass data to update
+        // the line below displays the popup on the right panel of the page
+        //   document.querySelector('#popup').style.display = 'inherit'
+
+      } else {
+        document.querySelector('#popup').style.display = 'none'
+        doubleClickZoom();
+        //window.stop(onMapClick);
+
+      }
+
+    }); 
+
+
+    function getClassBreaks(NewMapData) {
           // 				// create empty Array for storing values
           const alldata = [];
           // 				// loop through all the counties
@@ -529,83 +636,16 @@
           }
         } //this is the end of the getColor function
 
-        const breaks = getClassBreaks(NewMapData);
+      
+        
+        
+        
 
-        NewMapData.eachLayer(function (layer) {
-          // console.log(breaks)
-          console.log(layer.feature.properties.value[0]);
-          layer.setStyle({
-            fillColor: getColor2(layer.feature.properties.value[0], breaks),
-            fillOpacity: 1
-            // fillColor: getColor2(breaks)
-          })
-        });
-        $(".MyMapName").html(document.getElementById("tname").value);
-        $(".OneMapperVersion").html("Made with OneMapper v0.1");
-        //zoom out slightly to make space for the legend
-        map.setZoom(map.getZoom() - .55);
-
-        // Setting up the legend
+    
 
 
-        var legend = L.control({ position: 'bottomleft' });
-
-        legend.onAdd = function (map) {
-          var div = L.DomUtil.create('div', 'info legend'),
-            grades = [0, 25, 50, 75, 100],
-            labels = [];
-
-          div.innerHTML += `<b>Legend</b><br><br>`
-          console.log(document.getElementById("vname").value)
-          div.innerHTML += document.getElementById("vname").value
-          div.innerHTML += `<br><br>`
-          // loop through the Array of classification break values
-          for (let i = 0; i <= breaks.length - 1; i++) {
-            let color = getColor2(breaks[i][0], breaks);
-            console.log(color)
-            div.innerHTML += (
-              `<i span style="background:${color}"></span>
-              <label>${(breaks[i][0]).toLocaleString()} &mdash;
-              ${(breaks[i][1]).toLocaleString()}</label>`);
-          }
-          return div;
-
-        }; //closes the legend.onAdd function
-        //https://www.geeksforgeeks.org/how-to-get-the-value-of-text-input-field-using-javascript/
-
-        legend.addTo(map); //add the legend to the map
-        AddPointButton(NewMapData)
-        //Here I will add code to show the title to the map
-
-      }) //closes the button portion
-    } //end of updateLegend function
 
 
-    // function AddPointButton(NewMapData){
-    toggle = false;
-    document.getElementById("addpoints").addEventListener("click", function () {
-      toggle = !toggle;
-      this.style.backgroundColor = toggle ? "#4CAF50" : "lightgray";
-      console.log(this.style.backgroundColor);
-      console.log(this.style.backgroundColor == 'lightgray');
-      console.log(this.style.backgroundColor == "rgb(76, 175, 80)")
-      // var buttoncolor = document.getElementById("addpoints");
-      //  var curColor = window.getComputedStyle(buttoncolor,null).color;
-      //  console.log(curColor);
-      // if (curColor =! "lightgray") {
-      if (this.style.backgroundColor == "rgb(76, 175, 80)") {
-        onMapClick(); // pass data to update
-        // the line below displays the popup on the right panel of the page
-        //   document.querySelector('#popup').style.display = 'inherit'
-
-      } else {
-        document.querySelector('#popup').style.display = 'none'
-        doubleClickZoom();
-        //window.stop(onMapClick);
-
-      }
-
-    }); //end of the addEventListener
     // }
     //})
     //////////////////////////////END OF BUTTON FUNCTIONALITY: MAPIT

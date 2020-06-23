@@ -123,6 +123,29 @@
       font-size: 14px;
     }
 
+    .button7 {
+      background-color: black;
+      border: none;
+      color: white;
+      width: 100px;
+      padding: 10px 10px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+    }
+
+    .button8 {
+      background-color: white;
+      border: none;
+      color: black;
+      width: 100px;
+      padding: 10px 10px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+    }
 
     #legend {
       line-height: 18px;
@@ -236,7 +259,6 @@
           <p class="descriptivetext">Select your basemap using the small box <img src='images/LayerIcon.jpeg'> in the
             upper right of the map. Navigate with the dropdown menu or by click and zoom. On data upload, map will
             automatically zoom to your points.</p>
-          <!--Idea here would be for a button to activate the popup window rather than having the popup appear right away, it could be more difficult for users to navigate if the popup keeps appearing first-->
           <!--This is the dropdown to select which continent is of interest-->
           <div class="form-group mr-3 mt-3" id="dropdown-ui">
             <select class="form-control bg-primary text-white">
@@ -275,17 +297,27 @@
           </h5>
           <button type="button" class="button2" id="mapit">Map Values!</button>
           <br><br>
-          <h5 class="descriptivetext">Try out some different color ramps below</h5>
+          <h5 class="descriptivetext">Try out some different color ramps, fill, and point size.</h5>
+          <p class="descriptivetext">The single color options do not show the four groups. Use these options if you want to show placement, but not value.</p>
           <button type="button" class="button3" id="changecol1">Color Ramp: Green/Blue</button>
           <button type="button" class="button4" id="changecol2">Color Ramp: Pink/Purple</button>
           <button type="button" class="button5" id="changecol3">Color Ramp: Grays</button>
           <button type="button" class="button6" id="changecol4">Color Ramp: Orange/Red</button>
+          <button type="button" class="button7" id="changecol5">Color Ramp: Single Color</button>
+          <button type="button" class="button8" id="changecol6">Color Ramp: Single Color</button>
           <br><br>
           <div id="ui-controls">
             <label>
               <span class="min">No fill</span>
               <span class="max">Total fill</span>
               <input type="range" min="0" , max="1" , value="0.6" , step="0.1" , class="fill-slider">
+            </label>
+          </div>
+          <div id="ui-controls">
+            <label>
+              <span class="min">Smaller point</span>
+              <span class="max">Larger point</span>
+              <input type="range" min="1" , max="10" , value="5" , step="1" , class="radius-slider">
             </label>
           </div>
           <h5 class="descriptivetext"><b>Creating data?</b> Click the button below and then generate a map!</h5>
@@ -544,17 +576,10 @@
         "fillColor": 'black'
       };
 
-
-      for (var i = 0; i < geojsonFeature.length; i++) {
-        var popup = `<b>Value:</b> ${geojsonFeature[i].properties.value[0].toLocaleString()}</h3>`
-        //console.log(popup)
-
-      } //end of the for loop
-
       const NewMapData = L.geoJSON(geojsonFeature, {
         // style counties with initial default path options
         onEachFeature: function (feature, layer) {
-          layer.bindPopup(`<b>Value:</b> ${feature.properties.value.toLocaleString()}</h3>`)
+          layer.bindPopup(`<b>Value:</b> ${(feature.properties.value).toLocaleString()}</h3>`)
         },
         pointToLayer: function (feature, latlng) {
           return L.circleMarker(latlng, mapops)
@@ -573,7 +598,10 @@
       updateColors2(NewMapData)
       updateColors3(NewMapData)
       updateColors4(NewMapData)
+      updateColors5(NewMapData)
+      updateColors6(NewMapData)
       SliderFill(NewMapData)
+      SliderRadius(NewMapData)
     } //end of updateMap
 
     ////////////////////////////////////////////////END OF PUT THE VALUES ON THE MAP
@@ -602,7 +630,7 @@
     //https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_onclick_dom
     //https://stackoverflow.com/questions/18388288/how-do-you-add-marker-to-map-using-leaflet-map-onclick-function-event-handl
     //This function calculates the four groups, changes the plotting colors, and adds the legend
-    function updateLegend(NewMapData, currentFill) {
+    function updateLegend(NewMapData) {
       document.getElementById("mapit").addEventListener("click", function () {
         console.log(NewMapData);
         var totalvalues = console.log(Object.keys(NewMapData).length + 1);
@@ -615,11 +643,11 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor2(layer.feature.properties.value[0], breaks),
-            fillOpacity: currentFill
+            fillOpacity: 0.6
             // fillColor: getColor2(breaks)
           })
         });
-        console.log(currentFill)
+
         $(".MyMapName").html(document.getElementById("tname").value);
         $(".OneMapperVersion").html("Made with OneMapper v0.1");
         //zoom out slightly to make space for the legend
@@ -659,20 +687,14 @@
         //https://www.geeksforgeeks.org/how-to-get-the-value-of-text-input-field-using-javascript/
 
       }) //closes the button portion
-      //If I keep the fillOpacity within the button portion, it would seem to only work when the button was pressed
-      //By this I mean the user would have to pre-select their desired fill opacity prior to clicking the map
-      //Instead, I want the fill opacity to dynamically change after the button is pressed, so I thought I should try placing this command outside the button portion but still within the same function
-      //NewMapData.eachLayer(function (layer) {
-      //  layer.setStyle({
-      //    fillOpacity: currentFill
-      //  })
-      //});
 
       //send this information to the updateColors functions
       updateColors(NewMapData)
       updateColors2(NewMapData)
       updateColors3(NewMapData)
       updateColors4(NewMapData)
+      updateColors5(NewMapData)
+      updateColors6(NewMapData)
     } //end of updateLegend function
     //////////////////////////////MAP VALUES - with uploaded data
 
@@ -683,7 +705,7 @@
 
 
     ///////////////////////////////FIRST UPDATE COLORS OPTION: GREEN/BLUE COLOR RAMP
-    function updateColors(NewMapData, currentFill) {
+    function updateColors(NewMapData) {
       document.getElementById("changecol1").addEventListener("click", function () {
         console.log(NewMapData);
         var totalvalues = console.log(Object.keys(NewMapData).length + 1);
@@ -696,7 +718,7 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor3(layer.feature.properties.value[0], breaks),
-            fillOpacity: 1
+            fillOpacity: 0.6
             // fillColor: getColor2(breaks)
           })
         });
@@ -747,7 +769,7 @@
 
 
     ///////////////////////////////////SECOND UPDATE COLORS OPTION: PINK/PURPLE COLOR RAMP
-    function updateColors2(NewMapData, currentFill) {
+    function updateColors2(NewMapData) {
       document.getElementById("changecol2").addEventListener("click", function () {
         console.log(NewMapData);
         var totalvalues = console.log(Object.keys(NewMapData).length + 1);
@@ -760,7 +782,7 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor4(layer.feature.properties.value[0], breaks),
-            fillOpacity: 1
+            fillOpacity: 0.6
             // fillColor: getColor2(breaks)
           })
         });
@@ -810,7 +832,7 @@
 
 
     ////////////////////////////////////THIRD COLORS OPTIONS: GRAYS
-    function updateColors3(NewMapData, currentFill) {
+    function updateColors3(NewMapData) {
       document.getElementById("changecol3").addEventListener("click", function () {
         console.log(NewMapData);
         var totalvalues = console.log(Object.keys(NewMapData).length + 1);
@@ -823,7 +845,7 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor5(layer.feature.properties.value[0], breaks),
-            fillOpacity: currentFill
+            fillOpacity: 0.6
             // fillColor: getColor2(breaks)
           })
         });
@@ -888,7 +910,7 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor6(layer.feature.properties.value[0], breaks),
-            fillOpacity: 1
+            fillOpacity: 0.6
             // fillColor: getColor2(breaks)
           })
         });
@@ -936,6 +958,71 @@
     } //end of ORANGE/RED COLOR RAMP FUCTION
     //////////////////////////////////////END OF FOURTH COLORS OPTION: ORANGE/RED, same as initial color option
 
+    function updateColors5(NewMapData) {
+      document.getElementById("changecol5").addEventListener("click", function () {
+        console.log(NewMapData);
+        var totalvalues = console.log(Object.keys(NewMapData).length + 1);
+
+        NewMapData.eachLayer(function (layer) {
+          // console.log(breaks)
+          console.log(layer.feature.properties.value[0]);
+          layer.setStyle({
+            fillColor: "black",
+            fillOpacity: 0.6
+            // fillColor: getColor2(breaks)
+          })
+        });
+
+        $(".MyMapName").html(document.getElementById("tname").value);
+        $(".OneMapperVersion").html("Made with OneMapper v0.1");
+        //zoom out slightly to make space for the legend
+
+        // Setting up the legend
+
+        const div = document.querySelector('#legend')
+        div.style.display = 'block'
+
+        div.innerHTML = `<b>Legend</b><br>`
+        console.log(document.getElementById("vname").value)
+        div.innerHTML += document.getElementById("vname").value
+
+      })
+
+    } //end of SINGLE COLOR RAMP FUCTION
+    //////////////////////////////////////END OF FIFTH COLORS OPTION: ORANGE/RED, same as initial color option
+
+    function updateColors6(NewMapData) {
+      document.getElementById("changecol6").addEventListener("click", function () {
+        console.log(NewMapData);
+        var totalvalues = console.log(Object.keys(NewMapData).length + 1);
+
+        NewMapData.eachLayer(function (layer) {
+          // console.log(breaks)
+          console.log(layer.feature.properties.value[0]);
+          layer.setStyle({
+            fillColor: "white",
+            fillOpacity: 0.6
+            // fillColor: getColor2(breaks)
+          })
+        });
+
+        $(".MyMapName").html(document.getElementById("tname").value);
+        $(".OneMapperVersion").html("Made with OneMapper v0.1");
+        //zoom out slightly to make space for the legend
+
+        // Setting up the legend
+
+        const div = document.querySelector('#legend')
+        div.style.display = 'block'
+
+        div.innerHTML = `<b>Legend</b><br>`
+        console.log(document.getElementById("vname").value)
+        div.innerHTML += document.getElementById("vname").value
+
+      })
+
+    } //end of SINGLE COLOR RAMP FUCTION
+    //////////////////////////////////////END OF SIXTH COLORS OPTION
 
     ///////////////////GENERATE THE CLASS BREAKS
     function getClassBreaks(NewMapData) {
@@ -1052,22 +1139,36 @@
 
 
 
-
     ////////////CREATING THE FILL SLIDER
     function SliderFill(NewMapData) {
 
       $(".fill-slider")
         .on("input change", function () {
           const currentFill = $(this).val();
-          updateLegend(currentFill);
-          updateColors(currentFill);
-          updateColors2(currentFill);
-          updateColors3(currentFill);
-          updateColors4(currentFill);
+          NewMapData.eachLayer(function (layer) {
+            layer.setStyle({
+              fillOpacity: currentFill
+              // fillColor: getColor2(breaks)
+            })
+          });
           //layer.setStyle({fillOpacity: currentFill});
         }) // end createSliderUI()
     } //end of sliderfill function
     ///////////////END OF THE FILL SLIDER
+
+
+    function SliderRadius(NewMapData) {
+
+      $(".radius-slider")
+        .on("input change", function () {
+          const currentRadius = $(this).val();
+          NewMapData.eachLayer(function (layer) {
+            layer.setStyle({
+              radius: currentRadius
+            })
+          });
+        }) // end createSliderUI()
+    } //end of sliderfill function
 
 
 
@@ -1151,7 +1252,6 @@
 
 
     //https://leafletjs.com/examples/quick-start/
-    //Let's create a popup
 
     //https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/color
     //https://stackoverflow.com/questions/45259626/switch-background-color-of-a-div-between-2-colors-on-alternate-clicks
@@ -1161,7 +1261,7 @@
     //https://leafletjs.com/reference-1.6.0.html
 
     //Here's a function that would pull up an information panel when the map is clicked
-    //A user could then enter data, though right now it's a static popup
+    //A user could then enter data
     //Some type of event handler, maybe a .onclick function?
     //Some kind of event handler that checks if another button is selected, and then has the pop up appear
 

@@ -326,6 +326,7 @@
             <!--https://www.w3schools.com/jsref/event_onclick.asp-->
             <!--The actual button interactivity is below in the script portion of the document-->
             <button type="button" class="button1" id="addpoints">Add Points</button>
+            <!--<button type="button" class="button2" id="testbutton">Select Plot Type</button>-->
             <!--<style>
               table,
               td {
@@ -579,7 +580,8 @@
       const NewMapData = L.geoJSON(geojsonFeature, {
         // style counties with initial default path options
         onEachFeature: function (feature, layer) {
-          layer.bindPopup(`<b>Value:</b> ${(feature.properties.value).toLocaleString()}</h3>`)
+          layer.bindPopup(`<b>Value:</b> ${Number(feature.properties.value).toLocaleString()}</h3>`)
+                                            //(breaks[i][0]).toLocaleString()
         },
         pointToLayer: function (feature, latlng) {
           return L.circleMarker(latlng, mapops)
@@ -643,7 +645,7 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor2(layer.feature.properties.value[0], breaks),
-            fillOpacity: 0.6
+            //fillOpacity: 0.6
             // fillColor: getColor2(breaks)
           })
         });
@@ -718,7 +720,7 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor3(layer.feature.properties.value[0], breaks),
-            fillOpacity: 0.6
+            //fillOpacity: 0.6
             // fillColor: getColor2(breaks)
           })
         });
@@ -782,7 +784,7 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor4(layer.feature.properties.value[0], breaks),
-            fillOpacity: 0.6
+            //fillOpacity: 0.6
             // fillColor: getColor2(breaks)
           })
         });
@@ -845,7 +847,7 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor5(layer.feature.properties.value[0], breaks),
-            fillOpacity: 0.6
+            //fillOpacity: 0.6
             // fillColor: getColor2(breaks)
           })
         });
@@ -910,7 +912,7 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor6(layer.feature.properties.value[0], breaks),
-            fillOpacity: 0.6
+            //fillOpacity: 0.6
             // fillColor: getColor2(breaks)
           })
         });
@@ -968,7 +970,7 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: "black",
-            fillOpacity: 0.6
+           // fillOpacity: 0.6
             // fillColor: getColor2(breaks)
           })
         });
@@ -1001,7 +1003,7 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: "white",
-            fillOpacity: 0.6
+            //fillOpacity: 0.6
             // fillColor: getColor2(breaks)
           })
         });
@@ -1151,8 +1153,11 @@
               // fillColor: getColor2(breaks)
             })
           });
-          //layer.setStyle({fillOpacity: currentFill});
+
+          console.log(currentFill)
+
         }) // end createSliderUI()
+        
     } //end of sliderfill function
     ///////////////END OF THE FILL SLIDER
 
@@ -1170,8 +1175,34 @@
         }) // end createSliderUI()
     } //end of sliderfill function
 
+//Below are some initial options for developing the proportional symbol plotting option
+  //   document.getElementById("testbutton").addEventListener("click", function () {
+  //   toggle = !toggle;
+  //   FunctionStatus = toggle ? 0 : 1;
+  //   console.log(FunctionStatus);
 
+  //   if (FunctionStatus == 0) {
+  //     console.log("Proportional"); // pass data to update
+  //     document.querySelector('#testbutton').innerHTML = 'Proportional';
+  //   } else {
+  //     console.log("Uniform")
+  //     document.querySelector('#testbutton').innerHTML = 'Uniform';
+  //     //window.stop(onMapClick);
 
+  //   }
+
+  // });
+
+//   //------------------------------------------>
+//   //set up the radius calculation
+
+//   function calcRadius(val) {
+
+// var radius = Math.sqrt(val / Math.PI);
+// return radius * .5; // adjust .5 as a scale factor
+
+// } //end of calcRadius
+// //------------------------------------------>
 
 
 
@@ -1250,14 +1281,13 @@
     });
 
 
+    
+ 
 
     //https://leafletjs.com/examples/quick-start/
-
     //https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/color
     //https://stackoverflow.com/questions/45259626/switch-background-color-of-a-div-between-2-colors-on-alternate-clicks
     //https://stackoverflow.com/questions/33447118/javascript-if-else-style-changing
-
-
     //https://leafletjs.com/reference-1.6.0.html
 
     //Here's a function that would pull up an information panel when the map is clicked
@@ -1481,7 +1511,6 @@
 
     // //Here's a function that would pull up an information panel when the map is clicked
     // //A user could then enter data, though right now it's a static popup
-    // //Some type of event handler, maybe a .onclick function?
 
     // function onMapClick(e) {
     //   popup

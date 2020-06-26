@@ -85,7 +85,11 @@ To test out these datasets:
 
 Note that the title you entered on the right side of the page is now the title of your map and the value field you entered is now listed on the legend.
 
-9. If you'd like to make another map using a different dataset, click the Clear Map button on the top of the right side panel. The page will reset and you can start mapping again!
+9. You have many mapping options available for the map on the right side panel. The Scalar button with create points that are proportional to their values. If you use the Smaller Point/Larger Point slider when this Scalar button is pressed, the points will convert back to uniform sizes.
+
+![](images/UploadOptions.jpeg)
+
+10. If you'd like to make another map using a different dataset, click the Clear Map button on the top of the right side panel. The page will reset and you can start mapping again!
 
 ![](images/ClearMapButton.jpeg)
 
@@ -105,15 +109,11 @@ You may be interested in creating a map using One Mapper rather than uploading a
 
 5. Click the Add Points button. 
 
-6. When you click on the map, you'll notice that a point is created. If you click the point again, you can now enter data.
+6. When you click on the map, you'll notice that a point is created. If you click the point again, you will see a popup. This popup is currently under development and is not functional. You are not able to enter data into these popup windows.
 
 ![](images/AddPopup.jpeg)
 
-******** These next steps are currently under development *********
-
-7. This next piece of One Mapper functionality is still in development. You will be able to try in a value and click Save, and the value will be saved.
-
-8. You can add as many points as you would like to the map.
+7. You can add as many points as you would like to the map.
 
 ![](images/AddManyPoints.jpeg)
 
@@ -121,7 +121,11 @@ If you look to the right side of the page, you will see how many points you've a
 
 ![](images/AddManyPointsCount.jpeg)
 
-9. If you click Generate Map, the plotted colors will change and the map will zoom out. You can adjust the zoom using the navigation button in the upper left corner, or by clicking on the map, or may zooming in/out on a trackpad.
+8. If you click Generate Map, the plotted colors will change and the map will zoom out. The information you entered for the Legend and Map Title will appear. You can adjust the zoom using the navigation button in the upper left corner, or by clicking on the map, or may zooming in/out on a trackpad.
+
+9. You can adjust the size of the plotted points using the slider on the right side menu that is below the Generate Map! button.
+
+![](images/AddSlider.jpeg)
 
 10. If you'd like to make another map using a different dataset, click the Clear Map button on the top of the right side panel. The page will reset and you can start mapping again!
 

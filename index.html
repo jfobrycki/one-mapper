@@ -147,6 +147,18 @@
       font-size: 14px;
     }
 
+    .button9 {
+      background-color: #756bb1;
+      border: none;
+      color: white;
+      width: 100px;
+      padding: 10px 10px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+    }
+
     #legend {
       line-height: 18px;
       color: #000000;
@@ -182,6 +194,12 @@
       float: right;
       margin-right: -15px;
     }
+
+    /* Dashed red border */
+    hr.op1 {
+      border-top: 1px dashed black;
+    }
+
 
     /* Small devices (landscape phones, 576px and up) */
     @media (min-width: 576px) {}
@@ -287,6 +305,7 @@
             <!--<input type="submit" value="Submit">-->
             <!--At some point, the text the user enters for the short title/description would then be pulled into the "Print It" part of the map-->
           </form>
+          <hr class="op1">
           <h5 class="descriptivetext"><b>Existing dataset?</b> Upload using the link</h5>
           <i>Your csv should have three columns: Lat, Lon, and Value. Download a <a
               href="https://github.com/jfobrycki/one-mapper#Tutorial-and-example-files" target="_blank">template
@@ -298,13 +317,15 @@
           <button type="button" class="button2" id="mapit">Map Values!</button>
           <br><br>
           <h5 class="descriptivetext">Try out some different color ramps, fill, and point size.</h5>
-          <p class="descriptivetext">The single color options do not show the four groups. Use these options if you want to show placement, but not value.</p>
+          <p class="descriptivetext">The single color options do not show the four groups. Use these options if you want
+            to show placement, but not value. The scalar button provides proportional points based on value.</p>
           <button type="button" class="button3" id="changecol1">Color Ramp: Green/Blue</button>
           <button type="button" class="button4" id="changecol2">Color Ramp: Pink/Purple</button>
           <button type="button" class="button5" id="changecol3">Color Ramp: Grays</button>
           <button type="button" class="button6" id="changecol4">Color Ramp: Orange/Red</button>
           <button type="button" class="button7" id="changecol5">Color Ramp: Single Color</button>
           <button type="button" class="button8" id="changecol6">Color Ramp: Single Color</button>
+          <button type="button" class="button9" id="scalar">Plot Ramp: Scalar</button>
           <br><br>
           <div id="ui-controls">
             <label>
@@ -320,6 +341,17 @@
               <input type="range" min="1" , max="10" , value="5" , step="1" , class="radius-slider">
             </label>
           </div>
+          <!--
+          <div id="ui-controls">
+            <label>
+              <span class="min">Smaller</span>
+              <span class="max">Larger</span>
+              <input type="range" min="1" , max="20" , value="5" , step="1" , class="scalar-slider">
+            </label>
+          </div>
+        -->
+          <hr class="op1">
+          <br>
           <h5 class="descriptivetext"><b>Creating data?</b> Click the button below and then generate a map!</h5>
           <p class="descriptivetext">
             <!--https://www.d3-graph-gallery.com/graph/interactivity_button.html-->
@@ -348,7 +380,16 @@
           <p>
             <button type="button" class="button2" id="genmap">Generate Map!</button>
           </p>
-          <hr>
+          <div id="ui-controls">
+            <label>
+              <span class="min">Smaller point</span>
+              <span class="max">Larger point</span>
+              <input type="range" min="5" , max="15" , value="5" , step="1" , class="radius-slider-add">
+            </label>
+          </div>
+
+
+          <hr class="op1">
           <h5 class="descriptivetext">Other Mapping Resources</h5>
           <!--Including additional links and suggestions. One Mapper doesn't do everything, in fact, it does one task and many people may be interested in other tasks. Those are best accomplished with other mapping resources-->
           <ul>
@@ -551,9 +592,6 @@
         } //end of complete function(results)
       });
 
-      // var reader = new FileReader();
-      // reader.onload = onReaderLoad();
-      // reader.readAsText(event.target.files[0]);
 
     } //this is the end of the handleUpload function
     ///////////////////////////////////////////////END OF LOAD IN THE DATA
@@ -563,7 +601,6 @@
 
     ////////////////////////////////////////////////PUT THE VALUES ON THE MAP
 
-    //and pull in this function
     function updateMap(geojsonFeature) {
       //check that it's routing correctly
       console.log(geojsonFeature)
@@ -577,21 +614,37 @@
         "fillColor": 'black'
       };
 
+      // create the NewMapData object that is used in all other functions
       const NewMapData = L.geoJSON(geojsonFeature, {
-        // style counties with initial default path options
+
         onEachFeature: function (feature, layer) {
+          //add a mouseover option for the data
+          layer.on('mouseover', function () {
+            this.setStyle({
+              Color: 'red'
+            })
+            this.openPopup();
+          });
+
+          layer.on('mouseout', function () {
+            this.setStyle({
+              Color: 'black'
+            })
+            this.closePopup();
+          });
           layer.bindPopup(`<b>Value:</b> ${Number(feature.properties.value).toLocaleString()}</h3>`)
-                                            //(breaks[i][0]).toLocaleString()
+
         },
+
         pointToLayer: function (feature, latlng) {
           return L.circleMarker(latlng, mapops)
         },
       }).addTo(map)
 
-      //get the boundaries
+      //get the boundaries of the map
       map.fitBounds(NewMapData.getBounds());
 
-      // adjust zoom level of map
+      // adjust zoom level of map and zoom out slightly to frame the data
       map.setZoom(map.getZoom() - .4);
 
       //pass to this dataset to multiple functions
@@ -604,6 +657,9 @@
       updateColors6(NewMapData)
       SliderFill(NewMapData)
       SliderRadius(NewMapData)
+      SliderScalar(NewMapData)
+      newCircles(NewMapData)
+
     } //end of updateMap
 
     ////////////////////////////////////////////////END OF PUT THE VALUES ON THE MAP
@@ -628,13 +684,13 @@
     /////////////////////////////END OF CREATE THE LEGEND
 
 
+
     //////////////////////////////MAP VALUES - with uploaded data
-    //https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_onclick_dom
-    //https://stackoverflow.com/questions/18388288/how-do-you-add-marker-to-map-using-leaflet-map-onclick-function-event-handl
+    //This is the function associated with the button Map Values!
     //This function calculates the four groups, changes the plotting colors, and adds the legend
     function updateLegend(NewMapData) {
       document.getElementById("mapit").addEventListener("click", function () {
-        console.log(NewMapData);
+        //console.log(NewMapData);
         var totalvalues = console.log(Object.keys(NewMapData).length + 1);
         getClassBreaks(NewMapData)
 
@@ -642,11 +698,9 @@
 
         NewMapData.eachLayer(function (layer) {
           // console.log(breaks)
-          console.log(layer.feature.properties.value[0]);
+          //console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor2(layer.feature.properties.value[0], breaks),
-            //fillOpacity: 0.6
-            // fillColor: getColor2(breaks)
           })
         });
 
@@ -690,26 +744,17 @@
 
       }) //closes the button portion
 
-      //send this information to the updateColors functions
-      updateColors(NewMapData)
-      updateColors2(NewMapData)
-      updateColors3(NewMapData)
-      updateColors4(NewMapData)
-      updateColors5(NewMapData)
-      updateColors6(NewMapData)
+
     } //end of updateLegend function
     //////////////////////////////MAP VALUES - with uploaded data
 
 
 
 
-
-
-
-    ///////////////////////////////FIRST UPDATE COLORS OPTION: GREEN/BLUE COLOR RAMP
+    ///////////////////////////////FIRST UPDATE COLORS OPTION: GREEN/BLUE COLOR RAMP BUTTON
     function updateColors(NewMapData) {
       document.getElementById("changecol1").addEventListener("click", function () {
-        console.log(NewMapData);
+        //console.log(NewMapData);
         var totalvalues = console.log(Object.keys(NewMapData).length + 1);
         getClassBreaks(NewMapData)
 
@@ -717,11 +762,9 @@
 
         NewMapData.eachLayer(function (layer) {
           // console.log(breaks)
-          console.log(layer.feature.properties.value[0]);
+          //console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor3(layer.feature.properties.value[0], breaks),
-            //fillOpacity: 0.6
-            // fillColor: getColor2(breaks)
           })
         });
 
@@ -766,14 +809,14 @@
       }) //CLOSING THE BUTTON FUNCTIONALITY
 
     } //end of GREEN/BLUE COLOR RAMP FUCTION
-    ///////////////////////////////FIRST UPDATE COLORS OPTION: GREEN/BLUE COLOR RAMP
+    ///////////////////////////////END OF GREEN/BLUE COLOR RAMP BUTTON
 
 
 
     ///////////////////////////////////SECOND UPDATE COLORS OPTION: PINK/PURPLE COLOR RAMP
     function updateColors2(NewMapData) {
       document.getElementById("changecol2").addEventListener("click", function () {
-        console.log(NewMapData);
+        //console.log(NewMapData);
         var totalvalues = console.log(Object.keys(NewMapData).length + 1);
         getClassBreaks(NewMapData)
 
@@ -784,8 +827,6 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor4(layer.feature.properties.value[0], breaks),
-            //fillOpacity: 0.6
-            // fillColor: getColor2(breaks)
           })
         });
 
@@ -829,14 +870,14 @@
 
       }) //CLOSING THE BUTTON FUNCTIONALITY
 
-    } //end of GREEN/BLUE COLOR RAMP FUCTION
+    }
     ///////////////////////////////////END OF SECOND UPDATE COLORS OPTION: PINK/PURPLE COLOR RAMP
 
 
     ////////////////////////////////////THIRD COLORS OPTIONS: GRAYS
     function updateColors3(NewMapData) {
       document.getElementById("changecol3").addEventListener("click", function () {
-        console.log(NewMapData);
+        //console.log(NewMapData);
         var totalvalues = console.log(Object.keys(NewMapData).length + 1);
         getClassBreaks(NewMapData)
 
@@ -847,8 +888,6 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor5(layer.feature.properties.value[0], breaks),
-            //fillOpacity: 0.6
-            // fillColor: getColor2(breaks)
           })
         });
 
@@ -892,7 +931,7 @@
 
       })
 
-    } //end of GRAYS COLOR RAMP FUCTION
+    } //end of COLOR RAMP FUCTION
     ////////////////////////////////////END OF THIRD COLORS OPTIONS: GRAYS
 
 
@@ -901,7 +940,7 @@
     //////////////////////////////////////FOURTH COLORS OPTION: ORANGE/RED, same as initial color option
     function updateColors4(NewMapData) {
       document.getElementById("changecol4").addEventListener("click", function () {
-        console.log(NewMapData);
+        //console.log(NewMapData);
         var totalvalues = console.log(Object.keys(NewMapData).length + 1);
         getClassBreaks(NewMapData)
 
@@ -912,8 +951,6 @@
           console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: getColor6(layer.feature.properties.value[0], breaks),
-            //fillOpacity: 0.6
-            // fillColor: getColor2(breaks)
           })
         });
 
@@ -960,18 +997,21 @@
     } //end of ORANGE/RED COLOR RAMP FUCTION
     //////////////////////////////////////END OF FOURTH COLORS OPTION: ORANGE/RED, same as initial color option
 
+
+
+    //////////////////////////////////////FIFTH COLORS OPTION: SINGLE COLOR, BLACK
+    //This option is available if a user wants to map the location of the points without having different categories shown
+    //The two options available are single color black and single color white. Given the combination of basemaps available, these two colors were selected to provided sufficient visual contrast.
+
     function updateColors5(NewMapData) {
       document.getElementById("changecol5").addEventListener("click", function () {
-        console.log(NewMapData);
+        //console.log(NewMapData);
         var totalvalues = console.log(Object.keys(NewMapData).length + 1);
 
         NewMapData.eachLayer(function (layer) {
-          // console.log(breaks)
-          console.log(layer.feature.properties.value[0]);
+          //console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: "black",
-           // fillOpacity: 0.6
-            // fillColor: getColor2(breaks)
           })
         });
 
@@ -991,20 +1031,24 @@
       })
 
     } //end of SINGLE COLOR RAMP FUCTION
-    //////////////////////////////////////END OF FIFTH COLORS OPTION: ORANGE/RED, same as initial color option
+    //////////////////////////////////////END OF FIFTH COLORS OPTION: SINGLE COLOR, BLACK
+
+
+
+    //////////////////////////////////////SIXTH COLORS OPTION: SINGLE COLOR, WHITE
+    //This option is available if a user wants to map the location of the points without having different categories shown
+    //The two options available are single color black and single color white. Given the combination of basemaps available, these two colors were selected to provided sufficient visual contrast.
+
 
     function updateColors6(NewMapData) {
       document.getElementById("changecol6").addEventListener("click", function () {
-        console.log(NewMapData);
+        //console.log(NewMapData);
         var totalvalues = console.log(Object.keys(NewMapData).length + 1);
 
         NewMapData.eachLayer(function (layer) {
-          // console.log(breaks)
-          console.log(layer.feature.properties.value[0]);
+          //console.log(layer.feature.properties.value[0]);
           layer.setStyle({
             fillColor: "white",
-            //fillOpacity: 0.6
-            // fillColor: getColor2(breaks)
           })
         });
 
@@ -1026,19 +1070,77 @@
     } //end of SINGLE COLOR RAMP FUCTION
     //////////////////////////////////////END OF SIXTH COLORS OPTION
 
+
+
+    //////////////////////////////////////SEVENTH OPTION: SCALAR PLOTTING USING VALUES
+    //This option is available if the user would like to show the points using circles proportionally sized to the values
+
+    function newCircles(NewMapData) {
+      document.getElementById("scalar").addEventListener("click", function () {
+
+        const rawdata = [];
+        const stddata = [];
+
+        NewMapData.eachLayer(function (layer) {
+          let rawnumbers = Number(layer.feature.properties.value);
+          rawdata.push(rawnumbers); // push the normalized value for each layer into the Array
+        });
+
+        //console.log(rawdata)
+        //console.log(Math.min(...rawdata));
+        //console.log(Math.max(...rawdata));
+
+        //A challenge here is that the values entered by the user could take on any number of values
+        //This calculation is one approach to standardize the values so that any value (from very small to very large) could still work for plotting with a scalar radius
+        //The calculation normalizes each value by subtracting the mean and dividing by the standard deviation using the Simple Statistics commands
+        //But then many of the values would be negative, so I try to add 1 back to normalized value to bring the data to all positive values that can then be scaled
+        //Another option I was testing was to try and add the absolute value of the minimum value in the dataset so then all values would be guaranteed to be positive
+        //This is an area that can use some different calculation testing. The circles could also be drawn based on the 4 breaks categories.
+        //If the calculated value remains negative, then the radius is negative, and the point doesn't appear on the map.
+
+        NewMapData.eachLayer(function (layer) {
+          let normvals = Number(layer.feature.properties.value)
+          let calcnorm = (normvals - ss.mean(rawdata)) / (ss.standardDeviation(rawdata));
+          let calcnorm2 = calcnorm + 1//Math.abs(ss.min(calcnorm))+0.1
+          var newradius = calcRadius(calcnorm2);
+          layer.setRadius(newradius);
+          SliderScalar(newradius);
+          stddata.push(calcnorm2); // push the normalized value for each layer into the Array
+        });
+        console.log(stddata)
+
+      });
+    }
+    //////////////////////////////////////END SEVENTH OPTION: SCALAR PLOTTING USING VALUES
+
+
+
+
+    //////////////////////////////////////////////END OF BUTTONS SECTION
+
+
+
+    //THIS SECTION STARTS VARIOUS FUNCTIONS THAT ARE USED BY THE BUTTON FUNCTIONS
+
+
     ///////////////////GENERATE THE CLASS BREAKS
     function getClassBreaks(NewMapData) {
       // 				// create empty Array for storing values
       const alldata = [];
+
       // 				// loop through all the counties
       NewMapData.eachLayer(function (layer) {
         let values = Number(layer.feature.properties.value);
         alldata.push(values); // push the normalized value for each layer into the Array
       });
+
+      //console.log(alldata)
+      //newCircles(alldata)
+
       // 				// determine similar clusters
       const clusters = ss.ckmeans(alldata, 4);
       //const clusters = ss.equalIntervalBreaks(alldata, 4);
-      console.log(clusters)
+      //console.log(clusters)
       // 				// create an array of the lowest value within each cluster
       const breaks = clusters.map(function (cluster) {
         return [cluster[0], cluster.pop()];
@@ -1050,7 +1152,12 @@
 
     ///////////////////END OF GENERATE THE CLASS BREAKS
 
-    ////////THE COLOR FUNCTIONS
+
+    ///////////////////////////THE COLOR FUNCTIONS
+
+
+
+    //This color function is associated with the generate map function
     function getColor2(d, breaks) {
       // 				// function accepts a single normalized data attribute value
       // 				// and uses a series of conditional statements to determine which
@@ -1068,6 +1175,7 @@
       }
     } //this is the end of the getColor function
 
+    //THis color function is associated with the updateColors function
     function getColor3(d, breaks) {
       // 				// function accepts a single normalized data attribute value
       // 				// and uses a series of conditional statements to determine which
@@ -1085,6 +1193,7 @@
       }
     } //this is the end of the getColor function
 
+    //This function is associated with the updatecolors2 function
     function getColor4(d, breaks) {
       // 				// function accepts a single normalized data attribute value
       // 				// and uses a series of conditional statements to determine which
@@ -1103,6 +1212,7 @@
     } //this is the end of the getColor function
 
 
+    //This function is associated with the updatecolors3 function
     function getColor5(d, breaks) {
       // 				// function accepts a single normalized data attribute value
       // 				// and uses a series of conditional statements to determine which
@@ -1120,7 +1230,7 @@
       }
     } //this is the end of the getColor function
 
-
+    //This function is associated with the updatecolors4 function
     function getColor6(d, breaks) {
       // 				// function accepts a single normalized data attribute value
       // 				// and uses a series of conditional statements to determine which
@@ -1137,9 +1247,12 @@
         return '#d7301f'
       }
     } //this is the end of the getColor function
-    ////////END OF THE COLOR FUNCTIONS
 
 
+    ////////////////////////////END OF THE COLOR FUNCTIONS
+
+
+    ////////////////ADDING SLIDER FUNCTIONALITY
 
     ////////////CREATING THE FILL SLIDER
     function SliderFill(NewMapData) {
@@ -1150,17 +1263,18 @@
           NewMapData.eachLayer(function (layer) {
             layer.setStyle({
               fillOpacity: currentFill
-              // fillColor: getColor2(breaks)
             })
           });
 
-          console.log(currentFill)
+          //console.log(currentFill)
 
         }) // end createSliderUI()
-        
+
     } //end of sliderfill function
     ///////////////END OF THE FILL SLIDER
 
+
+    ////////////CREATING THE RADIUS SLIDER
 
     function SliderRadius(NewMapData) {
 
@@ -1174,36 +1288,59 @@
           });
         }) // end createSliderUI()
     } //end of sliderfill function
+    ///////////END OF THE RADIUS SLIDER
 
-//Below are some initial options for developing the proportional symbol plotting option
-  //   document.getElementById("testbutton").addEventListener("click", function () {
-  //   toggle = !toggle;
-  //   FunctionStatus = toggle ? 0 : 1;
-  //   console.log(FunctionStatus);
 
-  //   if (FunctionStatus == 0) {
-  //     console.log("Proportional"); // pass data to update
-  //     document.querySelector('#testbutton').innerHTML = 'Proportional';
-  //   } else {
-  //     console.log("Uniform")
-  //     document.querySelector('#testbutton').innerHTML = 'Uniform';
-  //     //window.stop(onMapClick);
+    ///////////CREATING THE SCALAR SLIDER
+    //This was an idea to test if the proportional points could also have a slider that would keep scaling the points over a range of values
+    //For example, what if the user wanted to increase the size of the points, but maintain the relative sizes among the different points
 
-  //   }
 
-  // });
+    function SliderScalar(NewMapData, newradius) {
 
-//   //------------------------------------------>
-//   //set up the radius calculation
+      $(".scalar-slider")
+        .on("input change", function () {
+          const NewScale = $(this).val();
+          NewMapData.eachLayer(function (layer) {
+            layer.setStyle({
+              radius: NewScale * newradius
+            })
+          }
+          )
+          //calcRadius(NewScale)
+        }) // end createSliderUI()
+    } //end of sliderfill function
+    ///////////END OF SCALAR SLIDER
 
-//   function calcRadius(val) {
 
-// var radius = Math.sqrt(val / Math.PI);
-// return radius * .5; // adjust .5 as a scale factor
+    ////////////CREATING THE RADIUS SLIDER
 
-// } //end of calcRadius
-// //------------------------------------------>
+    function SliderRadiusAdd(AddMapData) {
 
+      $(".radius-slider-add")
+        .on("input change", function () {
+          const currentRadius = $(this).val();
+          AddMapData.eachLayer(function (layer) {
+            layer.setStyle({
+              radius: currentRadius
+            })
+          });
+        }) // end createSliderUI()
+    } //end of sliderfill function
+    ///////////END OF THE RADIUS SLIDER
+
+
+
+    ///////////////RADIUS CALCULATION
+    //This function is used in the scalar calculation
+
+    function calcRadius(val, NewScale) {
+
+      var newrad = Math.sqrt(val / Math.PI);
+      return newrad * 25; // adjust .5 as a scale factor
+
+    } //end of calcRadius
+    ///////////////END OF RADIUS CALCULATION
 
 
 
@@ -1215,19 +1352,6 @@
     /////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1281,9 +1405,6 @@
     });
 
 
-    
- 
-
     //https://leafletjs.com/examples/quick-start/
     //https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/color
     //https://stackoverflow.com/questions/45259626/switch-background-color-of-a-div-between-2-colors-on-alternate-clicks
@@ -1295,26 +1416,12 @@
     //Some type of event handler, maybe a .onclick function?
     //Some kind of event handler that checks if another button is selected, and then has the pop up appear
 
-    // const NewMapData = L.geoJSON(geojsonFeature, {
-    //     // style counties with initial default path options
-    //     onEachFeature: function (feature, layer) {
-    //       layer.bindPopup(`<b>Value:</b> ${feature.properties.value}</h3>`)
-    //     },
-    //     pointToLayer: function (feature, latlng) {
-    //       return L.circleMarker(latlng, mapops)
-    //     },
-    //   }).addTo(map)
-
-
     function onMapClick() {
-
-      //.button1 {background-color: #4CAF50};, try the button color, change the button color to provide some context that now mapping can occur, not just zooming on the map
 
       //Creating a location where all the newly created points on map click can be stored
       EnteredData = []
       //Now creating the popup, if I've also created a popup in the previous section when data are uploaded, maybe I should modify to refer to popup2 rather than both places calling popup
       function createPopup2(e) {
-
 
         //         EnteredData.push = [ {
         //       "type": "Feature",
@@ -1337,7 +1444,7 @@
         EnteredData.push(L.circleMarker
           (e.latlng, {
             "opacity": 1,
-            "weight": 2,
+            "radius": 5,
             "fillOpacity": 0.6,
             "color": 'green',
             "fillColor": 'green',
@@ -1349,28 +1456,10 @@
         //The console log for the EnteredData shows the array increasing
         console.log(EnteredData)
 
+
         //Show the total number of points added in the right panel to the user
         $(".TotalAdd").html((EnteredData.length).toLocaleString());
         $(".PointsAdded").html((EnteredData.length).toLocaleString());
-        //In the const save line, it looks to be calling for a popup and save id, like with the other buttons
-        //So I added id=popup and id=save to the form text
-        //  const save = document.querySelector('#popup2 #save')
-        //I keep getting an error in the console, TypeError: save is null
-        //  save.addEventListener('click', function () {
-        //  const value = document.querySelector('#popup2 #fname').value
-        // data = []
-        // data.addData(
-        //    {
-        //      "type": "Feature",
-        //      "geometry": {
-        //      "type": "Point",
-        //        "coordinates": [e.latlng.lng, e.latlng.lat]
-        //      },
-        //      "properties": {
-        //        "value": value
-        //      }
-        //    }
-        //  ) //end of data.addData
 
         infowindow
           .setLatLng(e.latlng)
@@ -1398,7 +1487,7 @@
         // }) //end of del.addEventListener('click', function () {
 
       } //end of create popup, function createPopup(e) {
-
+      generateMap(EnteredData)
       //Now show the popup when the map is clicked
       map.on('click', createPopup2);
 
@@ -1504,39 +1593,6 @@
 
 
 
-
-
-
-    //     var popup = L.popup();
-
-    // //Here's a function that would pull up an information panel when the map is clicked
-    // //A user could then enter data, though right now it's a static popup
-
-    // function onMapClick(e) {
-    //   popup
-    //     .setLatLng(e.latlng)
-    //     .setContent(
-    //       "Location:" + e.latlng.toString() + `<br>` +
-    //       `<form action="">
-    //         <label for="fname">Value:</label>
-    //         <input type="text" id="fname" name="fname"><br><br>
-    //         <input type="submit" value="Save">
-    //         <input type="submit" value="Delete">
-    //       </form>`
-    //     )
-    //     .openOn(map);
-    // }
-
-    // map.on('click', onMapClick);
-
-
-
-
-
-
-
-
-
     //////////////////////////////END OF ADD POINTS FUNCTIONALITY
 
     //////////////////////////////NOW VISUALIZE THE USER ENTERED DATA
@@ -1544,93 +1600,102 @@
 
     function generateMap(EnteredData) {
       document.getElementById("genmap").addEventListener("click", function () {
+        //map.removeLayer(EnteredData)
         console.log(EnteredData);
-        var totalvalues = console.log(Object.keys(EnteredData).length + 1);
-        getClassBreaks(EnteredData)
+        console.log(EnteredData[0]._latlng["lat"])
+        console.log(EnteredData[0]._latlng["lng"])
 
-        function getClassBreaks(EnteredData) {
-          // 				// create empty Array for storing values
-          const alldata = [];
-          // 				// loop through all the counties
-          EnteredData.eachLayer(function (layer) {
-            let values = layer.feature.properties.value;
-            alldata.push(values); // push the normalized value for each layer into the Array
-          });
-          // 				// determine similar clusters
-          const clusters = ss.ckmeans(alldata, 4);
-          console.log(clusters)
-          // 				// create an array of the lowest value within each cluster
-          const breaks = clusters.map(function (cluster) {
-            return [cluster[0], cluster.pop()];
-          });
-          // 				//return array of arrays, e.g., [[0.24,0.25], [0.26, 0.37], etc]
-          return breaks;
-        } //this is the end of the getClassBreaks function
+        var addedGeoFeature = []
 
-        function getColor2(d, breaks) {
-          // 				// function accepts a single normalized data attribute value
-          // 				// and uses a series of conditional statements to determine which
-          // 				// which color value to return to return to the function caller
-          // 				// we defined breaks as a const, so it is a standard reference that can't be changed
+        //create the loop, note that var starts with 1 because the first row is the names Lat, Lon, Value
+        for (var i = 0; i < EnteredData.length; i++) {
 
-          if (d <= breaks[0][1]) {
-            return '#fef0d9';
-          } else if (d <= breaks[1][1]) {
-            return '#fdcc8a';
-          } else if (d <= breaks[2][1]) {
-            return '#fc8d59';
-          } else if (d <= breaks[3][1]) {
-            return '#d7301f'
-          }
-        } //this is the end of the getColor function
 
-        const breaks = getClassBreaks(EnteredData);
 
-        EnteredData.eachLayer(function (layer) {
-          // console.log(breaks)
-          console.log(layer.feature.properties.value[0]);
-          layer.setStyle({
-            fillColor: getColor2(layer.feature.properties.value[0], breaks),
-            fillOpacity: 1
-            // fillColor: getColor2(breaks)
-          })
-        });
+          addedGeoFeature.push(
+
+            //this is the structure of an geojson
+            //for example, https://leafletjs.com/examples/geojson/
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                //first we collect the latitude, then the longitude, these are items 0 and 1 
+                //structure of the coordinates is x , y or longitude, latitude
+                "coordinates": [EnteredData[i]._latlng["lng"], EnteredData[i]._latlng["lat"]]
+              },
+              "properties": {
+                //item 2 in the same row is the value, what we want to plot
+                "value": 1
+              }
+            } //this is the end of the geojsonFeature
+          ) //this is the end of the push command
+        } //end of the for loop
+
+        console.log(addedGeoFeature)
+
+        var mapops2 = {
+          "opacity": 1,
+          "weight": 1.5,
+          "radius": 5,
+          "fillOpacity": 1,
+          "color": 'black',
+          "fillColor": 'black'
+        };
+
+        // create the NewMapData object that is used in all other functions
+        const AddMapData = L.geoJSON(addedGeoFeature, {
+
+          onEachFeature: function (feature, layer) {
+            //add a mouseover option for the data
+            layer.on('mouseover', function () {
+              this.setStyle({
+                Color: 'red'
+              })
+              this.openPopup();
+            });
+
+            layer.on('mouseout', function () {
+              this.setStyle({
+                Color: 'black'
+              })
+              this.closePopup();
+            });
+            layer.bindPopup(`A new point`)
+
+          },
+
+          pointToLayer: function (feature, latlng) {
+            return L.circleMarker(latlng, mapops2)
+          },
+        }).addTo(map)
+
+
+        //var totalvalues = console.log(Object.keys(EnteredData).length + 1);
+
 
         //zoom out slightly to make space for the legend
         map.setZoom(map.getZoom() - .8);
 
         // Setting up the legend
-        var legend = L.control({ position: 'bottomleft' });
 
-        legend.onAdd = function (map) {
-          var div = L.DomUtil.create('div', 'info legend'),
-            grades = [0, 25, 50, 75, 100],
-            labels = [];
+        $(".MyMapName").html(document.getElementById("tname").value);
+        $(".OneMapperVersion").html("Made with OneMapper v0.1");
+        //zoom out slightly to make space for the legend
 
-          div.innerHTML += `<span class='TotalVar'></span>` + `<b>Look! A legend!</b><span class='TotalVar'></span><br><br>`
-          div.innerHTML += `There are how many items plotted?`
-          //  for (var i = 0; i < grades.length; i++) {
-          //  div.innerHTML +=
-          //      '<i style="background:' + getColorANC(grades[i] + 1) + '"></i> ' +
-          //      grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '%');
-          // } //this closes the for
-          return div;
+        // Setting up the legend
 
-          //          for (let i = 0; i <= breaks.length - 1; i++) {
-          //					let color = getColor2(breaks[i][0], breaks);
-          //					legend.append(
-          //						`<span style="background:${color}"></span>
-          //					<label>${(breaks[i][0] * 100).toLocaleString()} &mdash;
-          //					${(breaks[i][1] * 100).toLocaleString()}%</label>`);
-          //				}
+        const div = document.querySelector('#legend')
+        div.style.display = 'block'
 
-        }; //closes the legend.onAdd function
+        div.innerHTML = `<b>Legend</b><br>`
+        console.log(document.getElementById("vname").value)
+        div.innerHTML += document.getElementById("vname").value
 
-
-        legend.addTo(map); //add the legend to the map
-
+        // legend.addTo(map); //add the legend to the map
+        SliderRadiusAdd(AddMapData)
       }) //closes the button portion
-    } //end of updateLegend function
+    } //end of GenerateMap function
 
     //////////////////////////////END OF BUTTON FUNCTIONALITY: MAPIT - USER INPUT
 
@@ -1687,36 +1752,6 @@
 
     //////////////////////////////TEST CODE FOR GETTING PDF OF THE MAP
 
-
-    ////////////////////////////////////////////MOUSEOVER EVENTS TO ADD IN
-//    function mouseEvents(geojsonFeature) {
- //     console.log(geojsonFeature[1].properties.value[0])
- //     for (var i = 0; i < geojsonFeature.length; i++) {
-
-//        geojsonFeature.on("mouseover", function (e) {
-//          this.openPopup(); //can put the popup here
-//          this.setStyle(
-//            {
-//              color: 'red',
-//            }
-///          )
- //       });
-
-
-  //      geojsonFeature.on("mouseout", function (e) {
-  //        this.closePopup(); //can put the popup here
-  //        this.setStyle(
-  ///          {
-  //            color: 'black',
-  //          }
-  ////        )
-  //      });
-  //    } //end of the for loop
-  //    bindPopup(popup); //myFunction(ValueLayer)
-  //  }
-////////////////////////////////////////////END OF MOUSEOVER EVENTS TO ADD IN
-
- ///https://eloquentjavascript.net/15_event.html
 
   </script>
 </body>

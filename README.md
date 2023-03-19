@@ -50,13 +50,13 @@ Here are two example files to use with One Mapper.
 This dataset comes from the City of Cambridge, Massachusetts 
 <a href="https://www.cambridgema.gov/GIS/gisdatadictionary/Environmental/ENVIRONMENTAL_StreetTrees" target="_blank">Trees</a> database that is maintained by Cambridge Public Works. The layer data was downloaded, opened in QGIS, coordinates were converted to WGS 84 (EPSG: 3857), and the layer was exported as a csv. The csv was edited so that the only columns remaining were latitude, longitude, and tree diameter at base height (measured in inches).
 
-This edited dataset is available <a href="data/Cambridge_Tree">here</a>.
+This edited dataset is available <a href="data/Cambridge_Tree.csv">here</a>.
 
 * <b>Bangladesh Water Arsenic Dataset:</b>
 This dataset comes from the British Geological Survey 
 <a href="https://www.bgs.ac.uk/research/groundwater/health/arsenic/Bangladesh/data.html" target="_blank">Arsenic contamination of groundwater in Bangladesh: data</a>. The specific file used was the <a href="https://www.bgs.ac.uk/downloads/start.cfm?id=2214">DPHE/BGS National Hydrochemical Survey csv</a> file. The csv file was edited so that there were three columns remaining, latitude, longitude, and the water arsenic concentration (measured in micrograms per liter). In the dataset, some water arsenic values were listed as below certain detection limits, such as &#60;6 or &#60;0.5. One Mapper needs an entire column of numeric values, so any value with the &#60; symbol was converted to that value. For example a listed value of &#60;6 was changed to 6.
 
-This edited dataset is available <a href="data/BGS_As">here</a>.
+This edited dataset is available <a href="data/BGS_As.csv">here</a>.
 
 To test out these datasets:
 
